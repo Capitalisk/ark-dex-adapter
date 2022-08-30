@@ -1,3 +1,3 @@
-# Lisk v3 DEX Adapter
+# Ark DEX Adapter
 
-DEX adapter module for lisk-core v3 blockchain.
+DEX adapter module for the Ark blockchain.

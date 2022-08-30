@@ -1,0 +1,35 @@
+{
+  "name": "ark-dex-adapter",
+  "version": "0.0.1",
+  "description": "DEX adapter module for the Ark blockchain.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --reporter spec --timeout 5000 --slow 3000",
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Capitalisk/ark-dex-adapter.git"
+  },
+  "keywords": [
+    "ark",
+    "v3",
+    "dex",
+    "adapter"
+  ],
+  "author": "Maarten Coppens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Capitalisk/ark-dex-adapter/issues"
+  },
+  "homepage": "https://github.com/Capitalisk/ark-dex-adapter#readme",
+  "dependencies": {
+    "@arkecosystem/client": "^3.0.0",
+    "@arkecosystem/crypto": "^3.5.2",
+    "axios": "^0.21.4",
+    "lodash.shuffle": "^4.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^8.2.1"
+  }
+}

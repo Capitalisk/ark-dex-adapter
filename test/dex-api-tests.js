@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const LiskV3DEXAdapterModule = require('../index');
+const ArkDEXAdapter = require('../index');
 const Channel = require('./utils/channel');
 const AppModuleMock = require('./utils/app');
 const {wait} = require('../common/utils');
@@ -15,12 +15,11 @@ describe('DEX API tests', async () => {
     let chainChangeEvents = [];
 
     before(async () => {
-        adapterModule = new LiskV3DEXAdapterModule({
+        adapterModule = new ArkDEXAdapter({
             config: {
                 env: 'test',
-                dexWalletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4',
-                rpcURL: 'wss://testnet-api.lisktools.eu/ws',
-                serviceURL: 'https://testnet-service.lisk.com'
+                dexWalletAddress: 'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5',
+                address: 'https://dapi.ark.io/api'
             },
             logger: {
                 info: () => {
@@ -92,7 +91,7 @@ describe('DEX API tests', async () => {
                 const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh'];
 
                 // Must be an array of wallet address strings.
-                assert.equal(JSON.stringify(walletMembers.sort()), JSON.stringify(memberAddessList.sort()));
+                assert.strictEqual(JSON.stringify(walletMembers.sort()), JSON.stringify(memberAddessList.sort()));
             });
 
             it('should throw a MultisigAccountDidNotExistError if the multisig wallet address does not exist', async () => {
@@ -106,9 +105,9 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notEqual(caughtError, null);
-                assert.equal(caughtError.type, 'InvalidActionError');
-                assert.equal(caughtError.name, 'MultisigAccountDidNotExistError');
+                assert.notstrictEqual(caughtError, null);
+                assert.strictEqual(caughtError.type, 'InvalidActionError');
+                assert.strictEqual(caughtError.name, 'MultisigAccountDidNotExistError');
             });
 
         });
@@ -123,7 +122,7 @@ describe('DEX API tests', async () => {
                         walletAddress: multiSigWalletAddress,
                     },
                 });
-                assert.equal(requiredSignatureCount, 2);
+                assert.strictEqual(requiredSignatureCount, 2);
             });
 
             it('should throw an AccountDidNotExistError if the wallet address does not exist', async () => {
@@ -137,9 +136,9 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notEqual(caughtError, null);
-                assert.equal(caughtError.type, 'InvalidActionError');
-                assert.equal(caughtError.name, 'MultisigAccountDidNotExistError');
+                assert.notstrictEqual(caughtError, null);
+                assert.strictEqual(caughtError.type, 'InvalidActionError');
+                assert.strictEqual(caughtError.name, 'MultisigAccountDidNotExistError');
             });
 
             it('should throw an AccountWasNotMultisigError if the account is not a multisig wallet', async () => {
@@ -153,9 +152,9 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notEqual(caughtError, null);
-                assert.equal(caughtError.type, 'InvalidActionError');
-                assert.equal(caughtError.name, 'AccountWasNotMultisigError');
+                assert.notstrictEqual(caughtError, null);
+                assert.strictEqual(caughtError.type, 'InvalidActionError');
+                assert.strictEqual(caughtError.name, 'AccountWasNotMultisigError');
             });
 
         });
@@ -173,20 +172,20 @@ describe('DEX API tests', async () => {
                     },
                 });
                 assert(Array.isArray(transactions));
-                assert.equal(transactions.length, 3);
-                assert.equal(transactions[0].senderAddress, senderWalletAddress);
-                assert.equal(transactions[0].message, '');
-                assert.equal(transactions[1].senderAddress, senderWalletAddress);
-                assert.equal(transactions[1].message, '');
-                assert.equal(transactions[2].senderAddress, senderWalletAddress);
-                assert.equal(transactions[2].message, '');
+                assert.strictEqual(transactions.length, 3);
+                assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[0].message, '');
+                assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[1].message, '');
+                assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[2].message, '');
 
                 for (let txn of transactions) {
-                    assert.equal(typeof txn.id, 'string');
-                    assert.equal(typeof txn.message, 'string');
-                    assert.equal(typeof txn.amount, 'string');
-                    assert.equal(Number.isNaN(Number(txn.amount)), false);
-                    assert.equal(Number.isInteger(txn.timestamp), true);
+                    assert.strictEqual(typeof txn.id, 'string');
+                    assert.strictEqual(typeof txn.message, 'string');
+                    assert.strictEqual(typeof txn.amount, 'string');
+                    assert.strictEqual(Number.isNaN(Number(txn.amount)), false);
+                    assert.strictEqual(Number.isInteger(txn.timestamp), true);
                 }
             });
 
@@ -199,14 +198,14 @@ describe('DEX API tests', async () => {
                     },
                 });
 
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 3);
-                assert.equal(transactions[0].senderAddress, senderWalletAddress);
-                assert.equal(transactions[0].timestamp, 1625259050);
-                assert.equal(transactions[1].senderAddress, senderWalletAddress);
-                assert.equal(transactions[1].timestamp, 1626260620);
-                assert.equal(transactions[2].senderAddress, senderWalletAddress);
-                assert.equal(transactions[2].timestamp, 1630162470);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 3);
+                assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[0].timestamp, 1625259050);
+                assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[1].timestamp, 1626260620);
+                assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[2].timestamp, 1630162470);
             });
 
             it('should return transactions are lower than than fromTimestamp when order is desc', async () => {
@@ -219,14 +218,14 @@ describe('DEX API tests', async () => {
                     },
                 });
 
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 3);
-                assert.equal(transactions[0].senderAddress, senderWalletAddress);
-                assert.equal(transactions[0].timestamp, 1630162470);
-                assert.equal(transactions[1].senderAddress, senderWalletAddress);
-                assert.equal(transactions[1].timestamp, 1626260620);
-                assert.equal(transactions[2].senderAddress, senderWalletAddress);
-                assert.equal(transactions[2].timestamp, 1625259050);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 3);
+                assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[0].timestamp, 1630162470);
+                assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[1].timestamp, 1626260620);
+                assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[2].timestamp, 1625259050);
             });
 
             it('should limit the number of transactions based on the specified limit', async () => {
@@ -237,10 +236,10 @@ describe('DEX API tests', async () => {
                         limit: 1,
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 1);
-                assert.equal(transactions[0].senderAddress, senderWalletAddress);
-                assert.equal(transactions[0].message, '');
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 1);
+                assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
+                assert.strictEqual(transactions[0].message, '');
             });
 
             it('should return an empty array if no transactions can be matched', async () => {
@@ -251,8 +250,8 @@ describe('DEX API tests', async () => {
                         limit: 100,
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 0);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 0);
             });
 
         });
@@ -267,20 +266,20 @@ describe('DEX API tests', async () => {
                         blockId: 'cab89ebf649d94f75147a6720da5846db26cb676cac00122df1a278ab871d4f8',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 1);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 1);
                 let txn = transactions[0];
 
-                assert.equal(typeof txn.id, 'string');
-                assert.equal(typeof txn.message, 'string');
-                assert.equal(typeof txn.amount, 'string');
-                assert.equal(Number.isNaN(Number(txn.amount)), false);
-                assert.equal(Number.isInteger(txn.timestamp), true);
-                assert.equal(typeof txn.senderAddress, 'string');
-                assert.equal(typeof txn.recipientAddress, 'string');
+                assert.strictEqual(typeof txn.id, 'string');
+                assert.strictEqual(typeof txn.message, 'string');
+                assert.strictEqual(typeof txn.amount, 'string');
+                assert.strictEqual(Number.isNaN(Number(txn.amount)), false);
+                assert.strictEqual(Number.isInteger(txn.timestamp), true);
+                assert.strictEqual(typeof txn.senderAddress, 'string');
+                assert.strictEqual(typeof txn.recipientAddress, 'string');
 
-                assert.equal(transactions[0].recipientAddress, recipientAddress);
-                assert.equal(transactions[0].message, 'Payout from ShineKami testnet pool');
+                assert.strictEqual(transactions[0].recipientAddress, recipientAddress);
+                assert.strictEqual(transactions[0].message, 'Payout from ShineKami testnet pool');
             });
 
             it('should return an empty array if no transactions match the specified blockId', async () => {
@@ -291,8 +290,8 @@ describe('DEX API tests', async () => {
                         blockId: '31d9d53d4912be178c3bd5421a59b2a32f9560ca',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 0);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 0);
             });
 
             it('should return an empty array if no transactions match the specified walletAddress', async () => {
@@ -303,8 +302,8 @@ describe('DEX API tests', async () => {
                         blockId: 'cab89ebf649d94f75147a6720da5846db26cb676cac00122df1a278ab871d4f8',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 0);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 0);
             });
         });
 
@@ -317,21 +316,21 @@ describe('DEX API tests', async () => {
                         blockId: '748f052b313e2c84595e2e9735550b499162cbbf5ab13a065f10424f4ffa74ee',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 1);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 1);
 
                 for (let txn of transactions) {
-                    assert.equal(typeof txn.id, 'string');
-                    assert.equal(typeof txn.message, 'string');
-                    assert.equal(typeof txn.amount, 'string');
-                    assert.equal(Number.isNaN(Number(txn.amount)), false);
-                    assert.equal(Number.isInteger(txn.timestamp), true);
-                    assert.equal(typeof txn.senderAddress, 'string');
-                    assert.equal(typeof txn.recipientAddress, 'string');
+                    assert.strictEqual(typeof txn.id, 'string');
+                    assert.strictEqual(typeof txn.message, 'string');
+                    assert.strictEqual(typeof txn.amount, 'string');
+                    assert.strictEqual(Number.isNaN(Number(txn.amount)), false);
+                    assert.strictEqual(Number.isInteger(txn.timestamp), true);
+                    assert.strictEqual(typeof txn.senderAddress, 'string');
+                    assert.strictEqual(typeof txn.recipientAddress, 'string');
                 }
 
-                assert.equal(transactions[0].senderAddress, 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3');
-                assert.equal(transactions[0].message, '');
+                assert.strictEqual(transactions[0].senderAddress, 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3');
+                assert.strictEqual(transactions[0].message, '');
             });
 
             it('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
@@ -343,21 +342,21 @@ describe('DEX API tests', async () => {
                     },
                 });
                 assert(Array.isArray(transactions));
-                assert.equal(transactions.length, 1);
+                assert.strictEqual(transactions.length, 1);
                 let txn = transactions[0];
 
-                assert.equal(typeof txn.id, 'string');
-                assert.equal(typeof txn.message, 'string');
-                assert.equal(typeof txn.amount, 'string');
+                assert.strictEqual(typeof txn.id, 'string');
+                assert.strictEqual(typeof txn.message, 'string');
+                assert.strictEqual(typeof txn.amount, 'string');
                 assert(!Number.isNaN(Number(txn.amount)));
                 assert(Number.isInteger(txn.timestamp));
                 assert(Array.isArray(txn.signatures));
                 for (let signature of txn.signatures) {
-                    assert.notEqual(signature, null);
-                    assert.equal(typeof signature.signerAddress, 'string');
+                    assert.notstrictEqual(signature, null);
+                    assert.strictEqual(typeof signature.signerAddress, 'string');
                 }
-                assert.equal(typeof txn.senderAddress, 'string');
-                assert.equal(typeof txn.recipientAddress, 'string');
+                assert.strictEqual(typeof txn.senderAddress, 'string');
+                assert.strictEqual(typeof txn.recipientAddress, 'string');
             });
 
             it('should return an empty array if no transactions match the specified blockId', async () => {
@@ -367,8 +366,8 @@ describe('DEX API tests', async () => {
                         blockId: '31d9d53d4912be178c3bd5421a59b2a32f9560ca',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 0);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 0);
             });
 
             it('should return an empty array if no transactions match the specified walletAddress', async () => {
@@ -378,8 +377,8 @@ describe('DEX API tests', async () => {
                         blockId: '748f052b313e2c84595e2e9735550b499162cbbf5ab13a065f10424f4ffa74ee',
                     },
                 });
-                assert.equal(Array.isArray(transactions), true);
-                assert.equal(transactions.length, 0);
+                assert.strictEqual(Array.isArray(transactions), true);
+                assert.strictEqual(transactions.length, 0);
             });
         });
 
@@ -391,9 +390,9 @@ describe('DEX API tests', async () => {
                         timestamp: 1631600251,
                     },
                 });
-                assert.notEqual(block, null);
-                assert.equal(block.height, 14577194);
-                assert.equal(block.timestamp, 1631600250);
+                assert.notstrictEqual(block, null);
+                assert.strictEqual(block.height, 14577194);
+                assert.strictEqual(block.timestamp, 1631600250);
             });
 
             it('should throw a BlockDidNotExistError error if no block can be found before the specified timestamp', async () => {
@@ -407,9 +406,9 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notEqual(caughtError, null);
-                assert.equal(caughtError.type, 'InvalidActionError');
-                assert.equal(caughtError.name, 'BlockDidNotExistError');
+                assert.notstrictEqual(caughtError, null);
+                assert.strictEqual(caughtError.type, 'InvalidActionError');
+                assert.strictEqual(caughtError.name, 'BlockDidNotExistError');
             });
 
         });
@@ -425,7 +424,7 @@ describe('DEX API tests', async () => {
 
         describe('getBlocksBetweenHeights action', async () => {
 
-            it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight', async () => {
+            it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {
                 let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
                     params: {
                         fromHeight: 14577190,
@@ -433,15 +432,15 @@ describe('DEX API tests', async () => {
                         limit: 100,
                     },
                 });
-                assert.equal(Array.isArray(blocks), true);
-                assert.equal(blocks.length, 1);
+                assert.strictEqual(Array.isArray(blocks), true);
+                assert.strictEqual(blocks.length, 1);
                 let block = blocks[0];
-                assert.equal(typeof block.id, 'string');
-                assert.equal(Number.isInteger(block.timestamp), true);
-                assert.equal(block.height, 14577191);
+                assert.strictEqual(typeof block.id, 'string');
+                assert.strictEqual(Number.isInteger(block.timestamp), true);
+                assert.strictEqual(block.height, 14577191);
             });
 
-            it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight', async () => {
+            it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {
                 let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
                     params: {
                         fromHeight: 14577190,
@@ -449,8 +448,8 @@ describe('DEX API tests', async () => {
                         limit: 1,
                     },
                 });
-                assert.equal(Array.isArray(blocks), true);
-                assert.equal(blocks.length, 0);
+                assert.strictEqual(Array.isArray(blocks), true);
+                assert.strictEqual(blocks.length, 0);
             });
 
             it('should return an empty array if no blocks are matched', async () => {
@@ -461,8 +460,8 @@ describe('DEX API tests', async () => {
                         limit: 1,
                     },
                 });
-                assert.equal(Array.isArray(blocks), true);
-                assert.equal(blocks.length, 0);
+                assert.strictEqual(Array.isArray(blocks), true);
+                assert.strictEqual(blocks.length, 0);
             });
         });
 
@@ -474,9 +473,9 @@ describe('DEX API tests', async () => {
                         height: 14577653,
                     },
                 });
-                assert.notEqual(block, null);
-                assert.equal(block.height, 14577653);
-                assert.equal(Number.isInteger(block.timestamp), true);
+                assert.notstrictEqual(block, null);
+                assert.strictEqual(block.height, 14577653);
+                assert.strictEqual(Number.isInteger(block.timestamp), true);
             });
 
             it('should throw a BlockDidNotExistError if no block could be matched', async () => {
@@ -490,9 +489,9 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notEqual(caughtError, null);
-                assert.equal(caughtError.type, 'InvalidActionError');
-                assert.equal(caughtError.name, 'BlockDidNotExistError');
+                assert.notstrictEqual(caughtError, null);
+                assert.strictEqual(caughtError.type, 'InvalidActionError');
+                assert.strictEqual(caughtError.name, 'BlockDidNotExistError');
             });
 
         });
@@ -536,9 +535,9 @@ describe('DEX API tests', async () => {
             await wait(5000);
             assert(chainChangeEvents.length >= 1);
             let eventData = chainChangeEvents[0].data;
-            assert.equal(eventData.type, 'addBlock');
+            assert.strictEqual(eventData.type, 'addBlock');
             let {block} = eventData;
-            assert.notEqual(block, null);
+            assert.notstrictEqual(block, null);
             assert(Number.isInteger(block.height));
             assert(Number.isInteger(block.timestamp));
         }).timeout(30000);

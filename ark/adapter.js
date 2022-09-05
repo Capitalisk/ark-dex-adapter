@@ -32,8 +32,12 @@ class ArkAdapter {
     this.logger = options.logger;
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || 'ark';
-    this.arkClient = new Connection('https://api.ark.io/api/');
-    this.identityManager = Identities.Keys.fromPassphrase();
+    this.arkClient = new Connection(
+      options.config.address || 'https://api.ark.io/api',
+    );
+    // this.identityManager = Identities.Keys.fromPassphrase(
+    //   options.config.passphrase,
+    // );
 
     this.transactionMapper = (transaction) => {
       // {
@@ -200,21 +204,42 @@ class ArkAdapter {
     }
   }
 
-  async getInboundTransactions({ params: { walletAddress } }) {}
+  async getInboundTransactions({ params: { walletAddress } }) {
+    await this.arkClient
+      .api('transactions')
+      .search({ recipientId: walletAddress });
+  }
 
+  // TODO: From block not present?
   async getOutboundTransactionsFromBlock({
     params: { walletAddress, blockId },
-  }) {}
+  }) {
+    await this.arkClient
+      .api('transactions')
+      .search({ senderId: walletAddress });
+  }
 
-  async getLastBlockAtTimestamp({ params: { timestamp } }) {}
+  async getLastBlockAtTimestamp({ params: { timestamp } }) {
+    return await this.arkClient.api('blocks').search({ timestamp });
+  }
 
-  async getMaxBlockHeight() {}
+  async getMaxBlockHeight() {
+    return await this.arkClient.api('blockchain');
+  }
 
-  async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {}
+  async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
+    return await this.arkClient
+      .api('blocks')
+      .search({ 'height.from': fromHeight, 'height.to': toHeight, limit });
+  }
 
-  async getBlockAtHeight({ params: { height } }) {}
+  async getBlockAtHeight({ params: { height } }) {
+    return await this.arkClient.api('blocks').search({ height });
+  }
 
-  async postTransaction({ params: { transaction } }) {}
+  async postTransaction({ params: { transaction } }) {
+    await this.arkClient.api('transactions').create([transaction]);
+  }
 
   async load(channel) {
     if (!this.dexWalletAddress) {

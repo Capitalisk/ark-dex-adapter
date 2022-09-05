@@ -1,2 +1,2 @@
-const ArkAdapter = require('./liskv3/adapter');
+const ArkAdapter = require('./ark/adapter');
 module.exports = ArkAdapter;

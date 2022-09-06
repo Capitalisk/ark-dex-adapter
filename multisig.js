@@ -76,42 +76,65 @@ const WALLET_ADDRESS = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
   // }
   // console.log(caughtError.type, caughtError.name, caughtError);
 
-  const senderWalletAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
+  // const senderWalletAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
 
-  const transactions =
-    await adapterModule.actions.getOutboundTransactions.handler({
-      params: {
-        walletAddress: senderWalletAddress,
-        fromTimestamp: 0,
-        limit: 3,
-      },
-    });
+  // const transactions =
+  //   await adapterModule.actions.getOutboundTransactions.handler({
+  //     params: {
+  //       walletAddress: senderWalletAddress,
+  //       fromTimestamp: 0,
+  //       limit: 3,
+  //     },
+  //   });
 
-  console.log(Array.isArray(transactions));
-  console.log(transactions[0].senderAddress === senderWalletAddress);
-  console.log(transactions[0].message === '');
-  console.log(transactions[1].senderAddress === senderWalletAddress);
-  console.log(transactions[1].message === '');
-  console.log(transactions[2].senderAddress === senderWalletAddress);
-  console.log(transactions[2].message === '');
+  // const transactions =
+  //   await adapterModule.actions.getOutboundTransactions.handler({
+  //     params: {
+  //       walletAddress: senderWalletAddress,
+  //       fromTimestamp: 172374440,
+  //       limit: 3,
+  //       // order: 'desc',
+  //     },
+  //   });
 
-  for (let txn of transactions) {
-    console.log("typeof txn.id === 'string'", typeof txn.id === 'string');
-    console.log(
-      "typeof txn.message === 'string'",
-      typeof txn.message === 'string',
-    );
-    console.log(
-      "typeof txn.amount === 'string'",
-      typeof txn.amount === 'string',
-    );
-    console.log(
-      'Number.isNaN(Number(txn.amount)) === false',
-      Number.isNaN(Number(txn.amount)) === false,
-    );
-    console.log(
-      'Number.isInteger(txn.timestamp) === true',
-      Number.isInteger(txn.timestamp) === true,
-    );
-  }
+  // console.log(transactions);
+
+  // console.log(Array.isArray(transactions));
+  // console.log(transactions[0].senderAddress === senderWalletAddress);
+  // console.log(transactions[0].message === '');
+  // console.log(transactions[1].senderAddress === senderWalletAddress);
+  // console.log(transactions[1].message === '');
+  // console.log(transactions[2].senderAddress === senderWalletAddress);
+  // console.log(transactions[2].message === '');
+
+  // for (let txn of transactions) {
+  //   console.log("typeof txn.id === 'string'", typeof txn.id === 'string');
+  //   console.log(
+  //     "typeof txn.message === 'string'",
+  //     typeof txn.message === 'string',
+  //   );
+  //   console.log(
+  //     "typeof txn.amount === 'string'",
+  //     typeof txn.amount === 'string',
+  //   );
+  //   console.log(
+  //     'Number.isNaN(Number(txn.amount)) === false',
+  //     Number.isNaN(Number(txn.amount)) === false,
+  //   );
+  //   console.log(
+  //     'Number.isInteger(txn.timestamp) === true',
+  //     Number.isInteger(txn.timestamp) === true,
+  //   );
+  // }
+
+  const recipientAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
+
+  const transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
+    params: {
+        walletAddress: recipientAddress,
+        blockId: 'd77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115',
+    },
+});
+
+  console.log(transactions)
 })();

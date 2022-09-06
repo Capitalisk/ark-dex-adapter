@@ -15,6 +15,7 @@ const {
 
 const { blockMapper, transactionMapper } = require('./mapper');
 const packageJSON = require('../package.json');
+const { default: axios } = require('axios');
 
 const DEFAULT_MODULE_ALIAS = 'ark_dex_adapter';
 
@@ -32,9 +33,8 @@ class ArkAdapter {
     this.logger = options.logger;
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || 'ark';
-    this.arkClient = new Connection(
-      options.config.address || 'https://api.ark.io/api',
-    );
+    this.arkAddress = options.config.address || 'https://api.ark.io/api';
+    this.arkClient = new Connection(this.arkAddress);
     this.pollInterval = options.config.pollInterval || 2000;
     this.blockInterval = null;
     // this.identityManager = Identities.Keys.fromPassphrase(
@@ -132,6 +132,9 @@ class ArkAdapter {
       getInboundTransactions: {
         handler: (action) => this.getInboundTransactions(action),
       },
+      getInboundTransactionsFromBlock: {
+        handler: (action) => this.getInboundTransactionsFromBlock(action),
+      },
       getOutboundTransactionsFromBlock: {
         handler: (action) => this.getOutboundTransactionsFromBlock(action),
       },
@@ -219,13 +222,24 @@ class ArkAdapter {
     }
   }
 
-  async getOutboundTransactions({ params: { walletAddress } }) {
+  // Timestamp is epoch
+  async getOutboundTransactions({
+    params: { walletAddress, fromTimestamp, limit, order },
+  }) {
     try {
-      const transactions = this.sanitateResponse(
-        await this.arkClient.api('wallets').transactionsSent(walletAddress),
-      );
+      const query = this.queryBuilder({
+        page: 1,
+        senderId: walletAddress,
+        'timestamp.from': fromTimestamp,
+        limit,
+        orderBy: order,
+      });
 
-      // TODO: Fix mapper
+      // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&timestamp.from=121676312&limit=100
+      const transactions = (
+        await axios.get(`${this.arkAddress}/transactions${query}`)
+      ).data.data;
+
       return transactions.map(this.transactionMapper);
     } catch (err) {
       if (notFound(err)) {
@@ -239,19 +253,92 @@ class ArkAdapter {
     }
   }
 
-  async getInboundTransactions({ params: { walletAddress } }) {
-    await this.arkClient
-      .api('transactions')
-      .search({ recipientId: walletAddress });
+  async getInboundTransactions({
+    params: { walletAddress, fromTimestamp, limit, order },
+  }) {
+    try {
+      const query = this.queryBuilder({
+        page: 1,
+        recipientId: walletAddress,
+        'timestamp.from': fromTimestamp,
+        limit,
+        orderBy: order,
+      });
+
+      // https://api.ark.io/api/transactions?page=1&recipientId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&timestamp.from=121676312&limit=100
+      const transactions = (
+        await axios.get(`${this.arkAddress}/transactions${query}`)
+      ).data.data;
+
+      return transactions.map(this.transactionMapper);
+    } catch (err) {
+      if (notFound(err)) {
+        return [];
+      }
+      throw new InvalidActionError(
+        accountDidNotExistError,
+        `Error getting outbound transactions with account address ${walletAddress}`,
+        err,
+      );
+    }
+  }
+
+  // TODO: From block not present?
+  async getInboundTransactionsFromBlock({
+    params: { walletAddress, blockId },
+  }) {
+    try {
+      const query = this.queryBuilder({
+        page: 1,
+        recipientId: walletAddress,
+        blockId,
+      });
+
+      // https://api.ark.io/api/transactions?page=1&recipientId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=428298302dd08c34c59ce46f55c0fffecc1e2ffa30ec194fe9a99d2b4efe8e4f
+      const transactions = (
+        await axios.get(`${this.arkAddress}/transactions${query}`)
+      ).data.data;
+
+      return transactions.map(this.transactionMapper);
+    } catch (err) {
+      if (notFound(err)) {
+        return [];
+      }
+      throw new InvalidActionError(
+        accountDidNotExistError,
+        `Error getting outbound transactions with account address ${walletAddress}`,
+        err,
+      );
+    }
   }
 
   // TODO: From block not present?
   async getOutboundTransactionsFromBlock({
     params: { walletAddress, blockId },
   }) {
-    await this.arkClient
-      .api('transactions')
-      .search({ senderId: walletAddress });
+    try {
+      const query = this.queryBuilder({
+        page: 1,
+        senderId: walletAddress,
+        blockId,
+      });
+
+      // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115
+      const transactions = (
+        await axios.get(`${this.arkAddress}/transactions${query}`)
+      ).data.data;
+
+      return transactions.map(this.transactionMapper);
+    } catch (err) {
+      if (notFound(err)) {
+        return [];
+      }
+      throw new InvalidActionError(
+        accountDidNotExistError,
+        `Error getting outbound transactions with account address ${walletAddress}`,
+        err,
+      );
+    }
   }
 
   sanitateResponse(response) {
@@ -287,9 +374,9 @@ class ArkAdapter {
   }
 
   async getRequiredDexWalletInformation() {
-    const account = this.sanitateResponse(
-      await this.arkClient.api('wallets').get(this.dexWalletAddress),
-    );
+    const account = (
+      await axios.get(`${this.arkAddress}/wallets/${this.dexWalletAddress}`)
+    ).data.data;
 
     if (!account.attributes?.multiSignature) {
       throw new Error('Wallet address is no multisig wallet');
@@ -338,6 +425,20 @@ class ArkAdapter {
   }
 
   async unload() {}
+
+  queryBuilder(args) {
+    let query = '?';
+
+    Object.entries(args).forEach(([key, value], i) => {
+      if (!value) return;
+      if (key === 'orderBy') value = 'timestamp:' + value;
+      if (i !== 0) query += '&';
+
+      query += `${key}=${value}`;
+    });
+
+    return query;
+  }
 }
 
 module.exports = ArkAdapter;

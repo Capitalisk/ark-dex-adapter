@@ -416,6 +416,7 @@ class ArkAdapter {
     // await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent)
 
     // https://api.ark.io/api/blocks?page=1&limit=100
+    // TODO: Removen no long needed
     this.blockInterval = setInterval(async () => {
       const { data: blocks } = await this.arkClient.api('blocks').all();
       blocks.forEach(async (b) => {

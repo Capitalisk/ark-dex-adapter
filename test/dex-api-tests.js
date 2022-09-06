@@ -18,7 +18,7 @@ describe('DEX API tests', async () => {
         adapterModule = new ArkDEXAdapter({
             config: {
                 env: 'test',
-                dexWalletAddress: 'D6Z26L69gdk9qYmTv5uzk3uGepigtHY4ax',
+                dexWalletAddress: 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV',
                 address: 'https://dapi.ark.io/api'
             },
             logger: {
@@ -79,7 +79,7 @@ describe('DEX API tests', async () => {
 
         describe('getMultisigWalletMembers action', async () => {
 
-            const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4';
+            const multiSigWalletAddress = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
 
             it('should return an array of member addresses', async () => {
                 let walletMembers = await adapterModule.actions.getMultisigWalletMembers.handler({
@@ -88,7 +88,7 @@ describe('DEX API tests', async () => {
                     },
                 });
 
-                const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh'];
+                const memberAddessList = ['DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV', 'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5'];
 
                 // Must be an array of wallet address strings.
                 assert.strictEqual(JSON.stringify(walletMembers.sort()), JSON.stringify(memberAddessList.sort()));
@@ -114,7 +114,7 @@ describe('DEX API tests', async () => {
 
         describe('getMinMultisigRequiredSignatures action', async () => {
 
-            const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4';
+            const multiSigWalletAddress = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
 
             it('should return the number of required signatures', async () => {
                 let requiredSignatureCount = await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
@@ -334,7 +334,7 @@ describe('DEX API tests', async () => {
             });
 
             it('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
-                const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4';
+                const multiSigWalletAddress = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
                 let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
                     params: {
                         walletAddress: multiSigWalletAddress,

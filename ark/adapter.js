@@ -1,4 +1,4 @@
-'use strict';
+// 'use strict';
 
 const { Connection } = require('@arkecosystem/client');
 const { Identities } = require('@arkecosystem/crypto');
@@ -128,12 +128,15 @@ class ArkAdapter {
   }
 
   isMultisigAccount(account) {
-    return account.attributes?.multiSignature.length;
+    return account.attributes?.multiSignature.min;
   }
 
   async getMultisigWalletMembers({ params: { walletAddress } }) {
     try {
-      const account = await this.arkClient.get('wallets').get(walletAddress);
+      const account = this.sanitateResponse(
+        await this.arkClient.api('wallets').get(walletAddress),
+      );
+
       if (account) {
         if (!this.isMultisigAccount(account)) {
           throw new InvalidActionError(
@@ -141,8 +144,12 @@ class ArkAdapter {
             `Account with address ${walletAddress} is not a multisig account`,
           );
         }
-        return account.attributes.multiSignature.map(({ address }) => address);
+
+        return account.attributes.multiSignature.publicKeys.map((k) =>
+          Identities.Address.fromPublicKey(k),
+        );
       }
+
       throw new InvalidActionError(
         multisigAccountDidNotExistError,
         `Error getting multisig account with address ${walletAddress}`,
@@ -161,7 +168,12 @@ class ArkAdapter {
 
   async getMinMultisigRequiredSignatures({ params: { walletAddress } }) {
     try {
-      const account = await this.arkClient.get('wallets').get(walletAddress);
+      const account = this.sanitateResponse(
+        await this.arkClient.get('wallets').get(walletAddress),
+      );
+
+      mlog.log(account);
+
       if (account) {
         if (!this.isMultisigAccount(account)) {
           throw new InvalidActionError(
@@ -221,26 +233,36 @@ class ArkAdapter {
       .search({ senderId: walletAddress });
   }
 
+  sanitateResponse(response) {
+    return response.body.data;
+  }
+
   async getLastBlockAtTimestamp({ params: { timestamp } }) {
-    return await this.arkClient.api('blocks').search({ timestamp });
+    return this.sanitateResponse(
+      await this.arkClient.api('blocks').search({ timestamp }),
+    );
   }
 
   async getMaxBlockHeight() {
-    return await this.arkClient.api('blockchain');
+    return this.sanitateResponse(await this.arkClient.api('blockchain'));
   }
 
   async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
-    return await this.arkClient
+    return this.sanitateResponse(await this.arkClien)
       .api('blocks')
       .search({ 'height.from': fromHeight, 'height.to': toHeight, limit });
   }
 
   async getBlockAtHeight({ params: { height } }) {
-    return await this.arkClient.api('blocks').search({ height });
+    return this.sanitateResponse(
+      await this.arkClient.api('blocks').search({ height }),
+    );
   }
 
   async postTransaction({ params: { transaction } }) {
-    await this.arkClient.api('transactions').create([transaction]);
+    return this.sanitateResponse(
+      await this.arkClient.api('transactions').create([transaction]),
+    );
   }
 
   async load(channel) {
@@ -254,9 +276,9 @@ class ArkAdapter {
       [this.alias]: {},
     });
 
-    const account = await this.arkClient
-      .api('wallets')
-      .get(this.dexWalletAddress);
+    const account = this.sanitateResponse(
+      await this.arkClient.api('wallets').get(this.dexWalletAddress),
+    );
 
     if (!account.attributes?.multiSignature) {
       throw new Error('Wallet address is no multisig wallet');

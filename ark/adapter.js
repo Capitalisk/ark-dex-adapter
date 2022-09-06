@@ -138,6 +138,7 @@ class ArkAdapter {
       getOutboundTransactionsFromBlock: {
         handler: (action) => this.getOutboundTransactionsFromBlock(action),
       },
+      // TODO: remove
       getLastBlockAtTimestamp: {
         handler: (action) => this.getLastBlockAtTimestamp(action),
       },

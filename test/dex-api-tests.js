@@ -105,7 +105,7 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notstrictEqual(caughtError, null);
+                assert.notStrictEqual(caughtError, null);
                 assert.strictEqual(caughtError.type, 'InvalidActionError');
                 assert.strictEqual(caughtError.name, 'MultisigAccountDidNotExistError');
             });
@@ -136,7 +136,7 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notstrictEqual(caughtError, null);
+                assert.notStrictEqual(caughtError, null);
                 assert.strictEqual(caughtError.type, 'InvalidActionError');
                 assert.strictEqual(caughtError.name, 'MultisigAccountDidNotExistError');
             });
@@ -146,13 +146,13 @@ describe('DEX API tests', async () => {
                 try {
                     await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
                         params: {
-                            walletAddress: 'lskx5t5nc997jczxn6s7ggoqtwcdbgs3u5r8q5b42',
+                            walletAddress: 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV',
                         },
                     });
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notstrictEqual(caughtError, null);
+                assert.notStrictEqual(caughtError, null);
                 assert.strictEqual(caughtError.type, 'InvalidActionError');
                 assert.strictEqual(caughtError.name, 'AccountWasNotMultisigError');
             });
@@ -352,7 +352,7 @@ describe('DEX API tests', async () => {
                 assert(Number.isInteger(txn.timestamp));
                 assert(Array.isArray(txn.signatures));
                 for (let signature of txn.signatures) {
-                    assert.notstrictEqual(signature, null);
+                    assert.notStrictEqual(signature, null);
                     assert.strictEqual(typeof signature.signerAddress, 'string');
                 }
                 assert.strictEqual(typeof txn.senderAddress, 'string');
@@ -390,7 +390,7 @@ describe('DEX API tests', async () => {
                         timestamp: 1631600251,
                     },
                 });
-                assert.notstrictEqual(block, null);
+                assert.notStrictEqual(block, null);
                 assert.strictEqual(block.height, 14577194);
                 assert.strictEqual(block.timestamp, 1631600250);
             });
@@ -406,7 +406,7 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notstrictEqual(caughtError, null);
+                assert.notStrictEqual(caughtError, null);
                 assert.strictEqual(caughtError.type, 'InvalidActionError');
                 assert.strictEqual(caughtError.name, 'BlockDidNotExistError');
             });
@@ -473,7 +473,7 @@ describe('DEX API tests', async () => {
                         height: 14577653,
                     },
                 });
-                assert.notstrictEqual(block, null);
+                assert.notStrictEqual(block, null);
                 assert.strictEqual(block.height, 14577653);
                 assert.strictEqual(Number.isInteger(block.timestamp), true);
             });
@@ -489,7 +489,7 @@ describe('DEX API tests', async () => {
                 } catch (error) {
                     caughtError = error;
                 }
-                assert.notstrictEqual(caughtError, null);
+                assert.notStrictEqual(caughtError, null);
                 assert.strictEqual(caughtError.type, 'InvalidActionError');
                 assert.strictEqual(caughtError.name, 'BlockDidNotExistError');
             });
@@ -537,7 +537,7 @@ describe('DEX API tests', async () => {
             let eventData = chainChangeEvents[0].data;
             assert.strictEqual(eventData.type, 'addBlock');
             let {block} = eventData;
-            assert.notstrictEqual(block, null);
+            assert.notStrictEqual(block, null);
             assert(Number.isInteger(block.height));
             assert(Number.isInteger(block.timestamp));
         }).timeout(30000);

@@ -29,18 +29,53 @@ const WALLET_ADDRESS = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
 
   // console.log(data);
 
-  let walletMembers =
-    await adapterModule.actions.getMultisigWalletMembers.handler({
-      params: {
-        walletAddress: WALLET_ADDRESS,
-      },
-    });
+  // let walletMembers =
+  //   await adapterModule.actions.getMultisigWalletMembers.handler({
+  //     params: {
+  //       walletAddress: WALLET_ADDRESS,
+  //     },
+  //   });
 
-  const memberAddessList = [
-    'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV',
-    'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV',
-    'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5',
-  ];
+  // const memberAddessList = [
+  //   'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV',
+  //   'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV',
+  //   'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5',
+  // ];
 
-  console.log(walletMembers);
+  // console.log(walletMembers);
+
+  // let caughtError = null;
+  // try {
+  //   await adapterModule.actions.getMultisigWalletMembers.handler({
+  //     params: {
+  //       walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
+  //     },
+  //   });
+  // } catch (error) {
+  //   caughtError = error;
+  // }
+  // console.log(caughtError.type, caughtError.name, caughtError);
+
+  // const count = await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
+  //   params: {
+  //     walletAddress: WALLET_ADDRESS,
+  //   },
+  // });
+
+  // console.log(count)
+
+  let caughtError = null;
+  try {
+      await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
+          params: {
+              walletAddress: 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV',
+          },
+      });
+  } catch (error) {
+      caughtError = error;
+  }
+  console.log(caughtError.type, caughtError.name, caughtError);
+  // assert.notStrictEqual(caughtError, null);
+  // assert.strictEqual(caughtError.type, 'InvalidActionError');
+  // assert.strictEqual(caughtError.name, 'AccountWasNotMultisigError');
 })();

@@ -128,7 +128,7 @@ class ArkAdapter {
   }
 
   isMultisigAccount(account) {
-    return account.attributes?.multiSignature.min;
+    return !!account.attributes.multiSignature;
   }
 
   async getMultisigWalletMembers({ params: { walletAddress } }) {
@@ -169,10 +169,8 @@ class ArkAdapter {
   async getMinMultisigRequiredSignatures({ params: { walletAddress } }) {
     try {
       const account = this.sanitateResponse(
-        await this.arkClient.get('wallets').get(walletAddress),
+        await this.arkClient.api('wallets').get(walletAddress),
       );
-
-      mlog.log(account);
 
       if (account) {
         if (!this.isMultisigAccount(account)) {

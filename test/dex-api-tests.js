@@ -161,7 +161,7 @@ describe('DEX API tests', async () => {
 
         describe('getOutboundTransactions action', async () => {
 
-            const senderWalletAddress = 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz';
+            const senderWalletAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
 
             it('should return an array of transactions sent from the specified walletAddress', async () => {
                 let transactions = await adapterModule.actions.getOutboundTransactions.handler({

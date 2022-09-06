@@ -18,9 +18,9 @@ const packageJSON = require('../package.json');
 
 const DEFAULT_MODULE_ALIAS = 'ark_dex_adapter';
 
-// const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
-// const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
-// const MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
+const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
+const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
+const MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
 
 const notFound = (err) => err && err.response && err.response.status === 404;
 
@@ -35,6 +35,8 @@ class ArkAdapter {
     this.arkClient = new Connection(
       options.config.address || 'https://api.ark.io/api',
     );
+    this.pollInterval = options.config.pollInterval || 2000;
+    this.blockInterval = null;
     // this.identityManager = Identities.Keys.fromPassphrase(
     //   options.config.passphrase,
     // );
@@ -68,9 +70,9 @@ class ArkAdapter {
       return transactionMapper(sanitizedTransaction);
     };
 
-    // this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
-    // this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
-    // this.MODULE_LISK_WS_CLOSE_EVENT = MODULE_LISK_WS_CLOSE_EVENT;
+    this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
+    this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
+    this.MODULE_LISK_WS_CLOSE_EVENT = MODULE_LISK_WS_CLOSE_EVENT;
   }
 
   get dependencies() {
@@ -86,11 +88,11 @@ class ArkAdapter {
   }
 
   get events() {
-    // return [
-    //   MODULE_BOOTSTRAP_EVENT,
-    //   MODULE_CHAIN_STATE_CHANGES_EVENT,
-    //   MODULE_LISK_WS_CLOSE_EVENT,
-    // ];
+    return [
+      MODULE_BOOTSTRAP_EVENT,
+      MODULE_CHAIN_STATE_CHANGES_EVENT,
+      MODULE_LISK_WS_CLOSE_EVENT,
+    ];
   }
 
   get actions() {
@@ -248,6 +250,10 @@ class ArkAdapter {
 
     this.channel = channel;
 
+    await this.channel.invoke('app:updateModuleState', {
+      [this.alias]: {},
+    });
+
     const account = await this.arkClient
       .api('wallets')
       .get(this.dexWalletAddress);
@@ -259,8 +265,31 @@ class ArkAdapter {
     this.dexNumberOfSignatures = account.attributes.multiSignature.min;
     this.dexMultisigPublicKeys = account.attributes.multiSignature.publicKeys;
 
+    const publishBlockChangeEvent = async (eventType, block) => {
+      const eventPayload = {
+        type: eventType,
+        block: {
+          timestamp: block.timestamp.unix,
+          height: block.height,
+        },
+      };
+
+      await channel.publish(
+        `${this.alias}:${MODULE_CHAIN_STATE_CHANGES_EVENT}`,
+        eventPayload,
+      );
+    };
+
     // TODO: Poll for changes
     // await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent)
+
+    // https://api.ark.io/api/blocks?page=1&limit=100
+    this.blockInterval = setInterval(async () => {
+      const { data: blocks } = await this.arkClient.api('blocks').all();
+      blocks.forEach(async (b) => {
+        await publishBlockChangeEvent('addBlock', b);
+      });
+    }, this.pollInterval);
   }
 
   async unload() {}

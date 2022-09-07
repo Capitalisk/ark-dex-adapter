@@ -399,17 +399,17 @@ describe('DEX API tests', async () => {
             it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {
                 let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
                     params: {
-                        fromHeight: 14577190,
-                        toHeight: 14577191,
+                        fromHeight: 12499709,
+                        toHeight: 12499729,
                         limit: 100,
                     },
                 });
                 assert.strictEqual(Array.isArray(blocks), true);
-                assert.strictEqual(blocks.length, 1);
+                assert.strictEqual(blocks.length, 21);
                 let block = blocks[0];
                 assert.strictEqual(typeof block.id, 'string');
                 assert.strictEqual(Number.isInteger(block.timestamp), true);
-                assert.strictEqual(block.height, 14577191);
+                assert.strictEqual(block.height, 12499729);
             });
 
             it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {

@@ -127,14 +127,29 @@ const WALLET_ADDRESS = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
   //   );
   // }
 
-  const recipientAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
+  //   const recipientAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
 
-  const transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
+  //   const transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
+  //     params: {
+  //         walletAddress: recipientAddress,
+  //         blockId: 'd77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115',
+  //     },
+  // });
+
+  //   console.log(transactions)
+
+  let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
     params: {
-        walletAddress: recipientAddress,
-        blockId: 'd77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115',
+      fromHeight: 12499709,
+      toHeight: 12499729,
+      limit: 100,
     },
-});
-
-  console.log(transactions)
+  });
+  console.log(blocks);
+  // assert.strictEqual(Array.isArray(blocks), true);
+  // assert.strictEqual(blocks.length, 21);
+  // let block = blocks[0];
+  // assert.strictEqual(typeof block.id, 'string');
+  // assert.strictEqual(Number.isInteger(block.timestamp), true);
+  // assert.strictEqual(block.height, 12499729);
 })();

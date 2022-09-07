@@ -341,13 +341,23 @@ class ArkAdapter {
   }
 
   async getMaxBlockHeight() {
-    return this.sanitateResponse(await this.arkClient.api('blockchain'));
+    return (await axios.get(`${this.arkAddress}/blockchain`)).data.data.block
+      .height;
   }
 
   async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
-    return this.sanitateResponse(await this.arkClien)
-      .api('blocks')
-      .search({ 'height.from': fromHeight, 'height.to': toHeight, limit });
+    // https://api.ark.io/api/blocks?page=1&height.from=21300790&height.to=21300791&limit=100
+    const query = this.queryBuilder({
+      'height.from': fromHeight,
+      'height.to': toHeight,
+      limit,
+    });
+
+    const {
+      data: { data },
+    } = await axios.get(`${this.arkAddress}/blocks/${query}`);
+
+    return data.map((b) => ({ ...b, timestamp: b.timestamp.unix }));
   }
 
   async getBlockAtHeight({ params: { height } }) {

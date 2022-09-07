@@ -332,10 +332,8 @@ describe('DEX API tests', async () => {
                     assert.strictEqual(Number.isInteger(txn.timestamp), true);
                     assert.strictEqual(typeof txn.senderAddress, 'string');
                     assert.strictEqual(typeof txn.recipientAddress, 'string');
+                    assert.strictEqual(txn.senderAddress, senderAddress);
                 }
-
-                assert.strictEqual(transactions[0].senderAddress, senderAddress);
-                assert.strictEqual(transactions[0].message, '');
             });
 
             it('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
@@ -385,37 +383,6 @@ describe('DEX API tests', async () => {
                 assert.strictEqual(Array.isArray(transactions), true);
                 assert.strictEqual(transactions.length, 0);
             });
-        });
-
-        describe('getLastBlockAtTimestamp action', async () => {
-
-            it('should return the highest block which is below the specified timestamp', async () => {
-                let block = await adapterModule.actions.getLastBlockAtTimestamp.handler({
-                    params: {
-                        timestamp: 1631600251,
-                    },
-                });
-                assert.notStrictEqual(block, null);
-                assert.strictEqual(block.height, 14577194);
-                assert.strictEqual(block.timestamp, 1631600250);
-            });
-
-            it('should throw a BlockDidNotExistError error if no block can be found before the specified timestamp', async () => {
-                let caughtError = null;
-                try {
-                    await adapterModule.actions.getLastBlockAtTimestamp.handler({
-                        params: {
-                            timestamp: 100,
-                        },
-                    });
-                } catch (error) {
-                    caughtError = error;
-                }
-                assert.notStrictEqual(caughtError, null);
-                assert.strictEqual(caughtError.type, 'InvalidActionError');
-                assert.strictEqual(caughtError.name, 'BlockDidNotExistError');
-            });
-
         });
 
         describe('getMaxBlockHeight action', async () => {

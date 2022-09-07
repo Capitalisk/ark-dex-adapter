@@ -30,7 +30,7 @@ const transactionMapper = (t) => {
   // }
   return {
     id: computeDEXTransactionId(t.sender, t.nonce),
-    message: t.message || '',
+    message: t.vendorField || '',
     amount: t.amount,
     timestamp: t.timestamp.unix,
     senderAddress: t.sender,

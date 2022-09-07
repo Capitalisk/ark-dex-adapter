@@ -35,8 +35,6 @@ class ArkAdapter {
     this.chainSymbol = options.config.chainSymbol || 'ark';
     this.arkAddress = options.config.address || 'https://api.ark.io/api';
     this.arkClient = new Connection(this.arkAddress);
-    this.pollInterval = options.config.pollInterval || 2000;
-    this.blockInterval = null;
     // this.identityManager = Identities.Keys.fromPassphrase(
     //   options.config.passphrase,
     // );
@@ -137,10 +135,6 @@ class ArkAdapter {
       },
       getOutboundTransactionsFromBlock: {
         handler: (action) => this.getOutboundTransactionsFromBlock(action),
-      },
-      // TODO: remove
-      getLastBlockAtTimestamp: {
-        handler: (action) => this.getLastBlockAtTimestamp(action),
       },
       getMaxBlockHeight: {
         handler: (action) => this.getMaxBlockHeight(action),
@@ -346,12 +340,6 @@ class ArkAdapter {
     return response.body.data;
   }
 
-  async getLastBlockAtTimestamp({ params: { timestamp } }) {
-    return this.sanitateResponse(
-      await this.arkClient.api('blocks').search({ timestamp }),
-    );
-  }
-
   async getMaxBlockHeight() {
     return this.sanitateResponse(await this.arkClient.api('blockchain'));
   }
@@ -397,33 +385,6 @@ class ArkAdapter {
     await this.channel.invoke('app:updateModuleState', {
       [this.alias]: {},
     });
-
-    const publishBlockChangeEvent = async (eventType, block) => {
-      const eventPayload = {
-        type: eventType,
-        block: {
-          timestamp: block.timestamp.unix,
-          height: block.height,
-        },
-      };
-
-      await channel.publish(
-        `${this.alias}:${MODULE_CHAIN_STATE_CHANGES_EVENT}`,
-        eventPayload,
-      );
-    };
-
-    // TODO: Poll for changes
-    // await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent)
-
-    // https://api.ark.io/api/blocks?page=1&limit=100
-    // TODO: Removen no long needed
-    this.blockInterval = setInterval(async () => {
-      const { data: blocks } = await this.arkClient.api('blocks').all();
-      blocks.forEach(async (b) => {
-        await publishBlockChangeEvent('addBlock', b);
-      });
-    }, this.pollInterval);
   }
 
   async unload() {}

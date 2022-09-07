@@ -174,7 +174,7 @@ describe('DEX API tests', async () => {
                 assert(Array.isArray(transactions));
                 assert.strictEqual(transactions.length, 3);
                 assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[0].message, '');
+                assert.strictEqual(transactions[0].message, 'ihsdaoidhsaohdas');
                 assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
                 assert.strictEqual(transactions[1].message, '');
                 assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
@@ -193,6 +193,7 @@ describe('DEX API tests', async () => {
             // Check how DEX needs to handle that
             // See both tests below, one expects asc while the API returns DESC
             // The other expects DESC and needs ASC for it to pass
+            // FIXME: Using DESC Rather than ASC by default
             it('should return transactions which are greater than fromTimestamp by default in asc order', async () => {
                 let transactions = await adapterModule.actions.getOutboundTransactions.handler({
                     params: {
@@ -205,11 +206,11 @@ describe('DEX API tests', async () => {
                 assert.strictEqual(Array.isArray(transactions), true);
                 assert.strictEqual(transactions.length, 3);
                 assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[0].timestamp, 1625259050);
+                assert.strictEqual(transactions[0].timestamp, 1662475640);
                 assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[1].timestamp, 1626260620);
+                assert.strictEqual(transactions[1].timestamp, 1662476184);
                 assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[2].timestamp, 1630162470);
+                assert.strictEqual(transactions[2].timestamp, 1662476536);
             });
 
             it('should return transactions are lower than than fromTimestamp when order is desc', async () => {
@@ -225,11 +226,11 @@ describe('DEX API tests', async () => {
                 assert.strictEqual(Array.isArray(transactions), true);
                 assert.strictEqual(transactions.length, 3);
                 assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[0].timestamp, 1630162470);
+                assert.strictEqual(transactions[0].timestamp, 1662560648);
                 assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[1].timestamp, 1626260620);
+                assert.strictEqual(transactions[1].timestamp, 1662500592);
                 assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[2].timestamp, 1625259050);
+                assert.strictEqual(transactions[2].timestamp, 1662476536);
             });
 
             it('should limit the number of transactions based on the specified limit', async () => {
@@ -243,7 +244,7 @@ describe('DEX API tests', async () => {
                 assert.strictEqual(Array.isArray(transactions), true);
                 assert.strictEqual(transactions.length, 1);
                 assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-                assert.strictEqual(transactions[0].message, '');
+                assert.strictEqual(transactions[0].message, 'ihsdaoidhsaohdas');
             });
 
             it('should return an empty array if no transactions can be matched', async () => {
@@ -313,10 +314,11 @@ describe('DEX API tests', async () => {
         describe('getOutboundTransactionsFromBlock action', async () => {
 
             it('should return an array of transactions sent to the specified walletAddress', async () => {
+                const senderAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV'
                 let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
                     params: {
-                        walletAddress: 'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5',
-                        blockId: '4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b',
+                        walletAddress: senderAddress,
+                        blockId: '567a84f7bafca45b5ead534aa39baaa97ba78a9a4753ac317108f82dcab29c26',
                     },
                 });
                 assert.strictEqual(Array.isArray(transactions), true);
@@ -332,7 +334,7 @@ describe('DEX API tests', async () => {
                     assert.strictEqual(typeof txn.recipientAddress, 'string');
                 }
 
-                assert.strictEqual(transactions[0].senderAddress, 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzv');
+                assert.strictEqual(transactions[0].senderAddress, senderAddress);
                 assert.strictEqual(transactions[0].message, '');
             });
 
@@ -341,7 +343,7 @@ describe('DEX API tests', async () => {
                 let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
                     params: {
                         walletAddress: multiSigWalletAddress,
-                        blockId: '50e300c2c5ad79aa23a83a9febf584f82b0784c4488708f9a521ffacfbdbaf75',
+                        blockId: '840db5bcc2a0fad343bc01d8173217306bd41c707ef39fabe560e5e5f39e29eb',
                     },
                 });
                 assert(Array.isArray(transactions));

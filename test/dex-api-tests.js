@@ -318,7 +318,7 @@ describe('DEX API tests', async () => {
                 let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
                     params: {
                         walletAddress: senderAddress,
-                        blockId: '567a84f7bafca45b5ead534aa39baaa97ba78a9a4753ac317108f82dcab29c26',
+                        blockId: 'bc9edb2acde2004b313c145bb12c5913fdc344a21150e843f7fab31a2041e759',
                     },
                 });
                 assert.strictEqual(Array.isArray(transactions), true);
@@ -427,8 +427,8 @@ describe('DEX API tests', async () => {
             it('should return an empty array if no blocks are matched', async () => {
                 let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
                     params: {
-                        fromHeight: 100,
-                        toHeight: 200,
+                        fromHeight: 0,
+                        toHeight: 0,
                         limit: 1,
                     },
                 });
@@ -442,11 +442,11 @@ describe('DEX API tests', async () => {
             it('should expose a getBlockAtHeight action', async () => {
                 let block = await adapterModule.actions.getBlockAtHeight.handler({
                     params: {
-                        height: 14577653,
+                        height: 12499729,
                     },
                 });
                 assert.notStrictEqual(block, null);
-                assert.strictEqual(block.height, 14577653);
+                assert.strictEqual(block.height, 12499729);
                 assert.strictEqual(Number.isInteger(block.timestamp), true);
             });
 
@@ -455,7 +455,7 @@ describe('DEX API tests', async () => {
                 try {
                     await adapterModule.actions.getBlockAtHeight.handler({
                         params: {
-                            height: 9,
+                            height: 0,
                         },
                     });
                 } catch (error) {

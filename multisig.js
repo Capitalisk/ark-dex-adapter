@@ -138,18 +138,29 @@ const WALLET_ADDRESS = 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV';
 
   //   console.log(transactions)
 
-  let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
-    params: {
-      fromHeight: 12499709,
-      toHeight: 12499729,
-      limit: 100,
-    },
-  });
-  console.log(blocks);
+  // let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
+  //   params: {
+  //     fromHeight: 12499709,
+  //     toHeight: 12499729,
+  //     limit: 100,
+  //   },
+  // });
+  // console.log(blocks);
   // assert.strictEqual(Array.isArray(blocks), true);
   // assert.strictEqual(blocks.length, 21);
   // let block = blocks[0];
   // assert.strictEqual(typeof block.id, 'string');
   // assert.strictEqual(Number.isInteger(block.timestamp), true);
   // assert.strictEqual(block.height, 12499729);
+
+  let block = await adapterModule.actions.getBlockAtHeight.handler({
+    params: {
+      height: 0,
+    },
+  });
+
+  console.log(block)
+  // assert.notStrictEqual(block, null);
+  // assert.strictEqual(block.height, 12499729);
+  // assert.strictEqual(Number.isInteger(block.timestamp), true);
 })();

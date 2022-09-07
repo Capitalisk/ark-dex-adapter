@@ -361,8 +361,22 @@ class ArkAdapter {
   }
 
   async getBlockAtHeight({ params: { height } }) {
-    return this.sanitateResponse(
-      await this.arkClient.api('blocks').search({ height }),
+    // https://api.ark.io/api/blocks?page=1&limit=1&height=21300899
+    const query = this.queryBuilder({
+      height,
+    });
+
+    const {
+      data: { data },
+    } = await axios.get(`${this.arkAddress}/blocks${query}`);
+
+    if (data.length) {
+      return data.map((b) => ({ ...b, timestamp: b.timestamp.unix }))[0];
+    }
+
+    throw new InvalidActionError(
+      blockDidNotExistError,
+      `Error getting block at height ${height}`,
     );
   }
 
@@ -403,7 +417,7 @@ class ArkAdapter {
     let query = '?';
 
     Object.entries(args).forEach(([key, value], i) => {
-      if (!value) return;
+      if (!value && value !== 0) return;
       if (key === 'orderBy') value = 'timestamp:' + value;
       if (i !== 0) query += '&';
 

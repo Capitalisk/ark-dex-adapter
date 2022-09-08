@@ -4,8 +4,7 @@
   "description": "DEX adapter module for the Ark blockchain.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --reporter spec --timeout 5000 --slow 3000",
-    "start": "node main.js"
+    "test": "mocha --reporter spec --timeout 5000 --slow 3000"
   },
   "repository": {
     "type": "git",

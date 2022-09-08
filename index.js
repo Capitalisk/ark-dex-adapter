@@ -1,7 +1,6 @@
 // 'use strict';
 
 const crypto = require('crypto');
-const { Connection } = require('@arkecosystem/client');
 const { Identities } = require('@arkecosystem/crypto');
 
 const packageJSON = require('./package.json');
@@ -14,7 +13,6 @@ const DEX_TRANSACTION_ID_LENGTH = 44;
 
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
 const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
-const MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
 
 const notFound = (err) => err && err.response && err.response.status === 404;
 
@@ -51,7 +49,6 @@ class ArkAdapter {
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || DEFAULT_CHAIN_SYMBOL;
     this.arkAddress = options.config.address || DEFAULT_ADDRESS;
-    this.arkClient = new Connection(this.arkAddress);
     this.chainPollingInterval = null;
     this.pollingInterval = options.config.pollingInterval || 10000;
 
@@ -59,7 +56,7 @@ class ArkAdapter {
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
     this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
-    this.MODULE_LISK_WS_CLOSE_EVENT = MODULE_LISK_WS_CLOSE_EVENT;
+    this.MODULE_ark_WS_CLOSE_EVENT = MODULE_ark_WS_CLOSE_EVENT;
 
     this.transactionMapper = (transaction) => {
       // this.dexMultisigPublicKeys needs to await it's Promise, if it isn't available yet, recall the function until it is available.
@@ -102,7 +99,6 @@ class ArkAdapter {
     return [
       MODULE_BOOTSTRAP_EVENT,
       MODULE_CHAIN_STATE_CHANGES_EVENT,
-      MODULE_LISK_WS_CLOSE_EVENT,
     ];
   }
 
@@ -330,10 +326,6 @@ class ArkAdapter {
     }
   }
 
-  sanitateResponse(response) {
-    return response.body.data;
-  }
-
   async getMaxBlockHeight() {
     return (await axios.get(`${this.arkAddress}/blockchain`)).data.data.block
       .height;
@@ -374,8 +366,21 @@ class ArkAdapter {
 
   async postTransaction({ params: { transaction } }) {
     // TODO: axios POST
-    return this.sanitateResponse(
-      await this.arkClient.api('transactions').create([transaction]),
+    const {
+      data: { data },
+    } = axios.post(`${this.arkAddress}/transactions`, {
+      body: {
+        transactions: [transaction],
+      },
+    });
+
+    if (data.length) {
+      return data[0];
+    }
+
+    throw new InvalidActionError(
+      transactionBroadcastError,
+      `Error broadcasting transaction to the ark network`,
     );
   }
 

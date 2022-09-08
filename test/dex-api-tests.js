@@ -214,9 +214,9 @@ describe('DEX API tests', async () => {
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 3);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[0].timestamp, 1662475640);
+        assert.strictEqual(transactions[0].timestamp, 1662560648);
         assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[1].timestamp, 1662476184);
+        assert.strictEqual(transactions[1].timestamp, 1662500592);
         assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
         assert.strictEqual(transactions[2].timestamp, 1662476536);
       });

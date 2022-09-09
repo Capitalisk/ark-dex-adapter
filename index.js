@@ -56,7 +56,6 @@ class ArkAdapter {
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
     this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
-    this.MODULE_ark_WS_CLOSE_EVENT = MODULE_ark_WS_CLOSE_EVENT;
 
     this.transactionMapper = (transaction) => {
       // this.dexMultisigPublicKeys needs to await it's Promise, if it isn't available yet, recall the function until it is available.

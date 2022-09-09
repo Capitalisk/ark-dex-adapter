@@ -10,9 +10,10 @@ const DEFAULT_MODULE_ALIAS = 'ark_dex_adapter';
 const DEFAULT_ADDRESS = 'https://api.ark.io/api';
 const DEFAULT_CHAIN_SYMBOL = 'ark';
 const DEX_TRANSACTION_ID_LENGTH = 44;
+const UNIX_MILLISECONDS_FACTOR = 1000;
+const UNIX_EPOCH_OFFSET = 1490101200;
 
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
-const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
 
 const notFound = (err) => err && err.response && err.response.status === 404;
 
@@ -49,19 +50,10 @@ class ArkAdapter {
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || DEFAULT_CHAIN_SYMBOL;
     this.arkAddress = options.config.address || DEFAULT_ADDRESS;
-    this.chainPollingInterval = null;
-    this.pollingInterval = options.config.pollingInterval || 10000;
-
-    this.getRequiredDexWalletInformation();
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
-    this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
 
     this.transactionMapper = (transaction) => {
-      // this.dexMultisigPublicKeys needs to await it's Promise, if it isn't available yet, recall the function until it is available.
-      if (!this.dexMultisigPublicKeys)
-        setTimeout(() => this.transactionMapper(transaction), 200);
-
       let sanitizedTransaction = {
         ...transaction,
         signatures: this.dexMultisigPublicKeys
@@ -71,8 +63,7 @@ class ArkAdapter {
             return {
               signerAddress,
               publicKey,
-              signature:
-                transaction.signatures?.[index] || transaction.signature,
+              signature: (transaction.signatures || [])[index],
             };
           })
           .filter((signaturePacket) => signaturePacket.signature),
@@ -97,7 +88,6 @@ class ArkAdapter {
   get events() {
     return [
       MODULE_BOOTSTRAP_EVENT,
-      MODULE_CHAIN_STATE_CHANGES_EVENT,
     ];
   }
 
@@ -143,14 +133,15 @@ class ArkAdapter {
         address: walletAddress,
       });
 
-      const account = (await axios.get(`${this.arkAddress}/wallets/${query}`))
-        .data.data?.[0];
+      const account = (
+        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+      )[0];
 
       if (account) {
         if (!this.isMultisigAccount(account)) {
           throw new InvalidActionError(
             accountWasNotMultisigError,
-            `Account with address ${walletAddress} is not a multisig account`,
+            `Account with address ${walletAddress} was not a multisig account`,
           );
         }
 
@@ -181,14 +172,15 @@ class ArkAdapter {
         address: walletAddress,
       });
 
-      let account = (await axios.get(`${this.arkAddress}/wallets/${query}`))
-        .data.data?.[0];
+      let account = (
+        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+      )[0];
 
       if (account) {
         if (!this.isMultisigAccount(account)) {
           throw new InvalidActionError(
             accountWasNotMultisigError,
-            `Account with address ${walletAddress} is not a multisig account`,
+            `Account with address ${walletAddress} was not a multisig account`,
           );
         }
         return account.attributes.multiSignature.min;
@@ -209,18 +201,23 @@ class ArkAdapter {
     }
   }
 
-  // Timestamp is epoch by default on Ark
   async getOutboundTransactions({
     params: { walletAddress, fromTimestamp, limit, order },
   }) {
+    fromTimestamp = this.convertUnixToEpochTimestamp(fromTimestamp);
     try {
-      const query = this.queryBuilder({
+      let queryParams = {
         page: 1,
         senderId: walletAddress,
-        'timestamp.from': fromTimestamp,
         limit,
-        orderBy: order,
-      });
+        orderBy: order || 'asc',
+      };
+      if (order === 'desc') {
+        queryParams['timestamp.to'] = fromTimestamp;
+      } else {
+        queryParams['timestamp.from'] = fromTimestamp;
+      }
+      const query = this.queryBuilder(queryParams);
 
       const transactions = (
         await axios.get(`${this.arkAddress}/transactions${query}`)
@@ -242,6 +239,7 @@ class ArkAdapter {
   async getInboundTransactions({
     params: { walletAddress, fromTimestamp, limit, order },
   }) {
+    fromTimestamp = this.convertUnixToEpochTimestamp(fromTimestamp);
     try {
       const query = this.queryBuilder({
         page: 1,
@@ -341,7 +339,7 @@ class ArkAdapter {
       data: { data },
     } = await axios.get(`${this.arkAddress}/blocks/${query}`);
 
-    return data.map((b) => ({ ...b, timestamp: b.timestamp.unix }));
+    return data.map((b) => ({ ...b, timestamp: b.timestamp.unix * UNIX_MILLISECONDS_FACTOR }));
   }
 
   async getBlockAtHeight({ params: { height } }) {
@@ -354,7 +352,7 @@ class ArkAdapter {
     } = await axios.get(`${this.arkAddress}/blocks${query}`);
 
     if (data.length) {
-      return data.map((b) => ({ ...b, timestamp: b.timestamp.unix }))[0];
+      return data.map((b) => ({ ...b, timestamp: b.timestamp.unix * UNIX_MILLISECONDS_FACTOR }))[0];
     }
 
     throw new InvalidActionError(
@@ -388,38 +386,24 @@ class ArkAdapter {
       await axios.get(`${this.arkAddress}/wallets/${this.dexWalletAddress}`)
     ).data.data;
 
-    if (!account.attributes?.multiSignature) {
-      throw new Error('Wallet address is no multisig wallet');
+    if (!account) {
+      throw new Error(`Account ${this.dexWalletAddress} could not be found`);
+    }
+
+    if (!account.attributes || !account.attributes.multiSignature) {
+      throw new Error('Wallet address was not a multisig wallet');
     }
 
     this.dexNumberOfSignatures = account.attributes.multiSignature.min;
     this.dexMultisigPublicKeys = account.attributes.multiSignature.publicKeys;
   }
 
-  async publishNewBlocks() {
-    const blocks = (await axios.get(`${this.arkAddress}/blocks?limit=20`)).data
-      .data;
-
-    blocks.forEach((b) => {
-      const eventPayload = {
-        type: 'addBlock',
-        block: {
-          timestamp: b.timestamp.unix,
-          height: b.height,
-        },
-      };
-
-      this.channel.publish(
-        `${this.alias}:${MODULE_CHAIN_STATE_CHANGES_EVENT}`,
-        eventPayload,
-      );
-    });
-  }
-
   async load(channel) {
     if (!this.dexWalletAddress) {
       throw new Error('Dex wallet address not provided in the config');
     }
+
+    this.getRequiredDexWalletInformation();
 
     this.channel = channel;
 
@@ -428,18 +412,9 @@ class ArkAdapter {
     });
 
     await channel.publish(`${this.alias}:${MODULE_BOOTSTRAP_EVENT}`);
-
-    await this.publishNewBlocks();
-
-    this.chainPollingInterval = setInterval(
-      () => this.publishNewBlocks,
-      this.pollingInterval,
-    );
   }
 
-  async unload() {
-    clearInterval(this.chainPollingInterval);
-  }
+  async unload() {}
 
   queryBuilder(args) {
     let query = '?';
@@ -455,20 +430,12 @@ class ArkAdapter {
     return query;
   }
 
-  computeDEXTransactionId(senderAddress, nonce) {
-    return crypto
-      .createHash('sha256')
-      .update(`${senderAddress}-${nonce}`)
-      .digest('hex')
-      .slice(0, DEX_TRANSACTION_ID_LENGTH);
-  }
-
   sanitizeTransaction(t) {
     return {
-      id: this.computeDEXTransactionId(t.sender, t.nonce),
+      id: t.id,
       message: t.vendorField || '',
       amount: t.amount,
-      timestamp: t.timestamp.unix,
+      timestamp: t.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
       senderAddress: t.sender,
       recipientAddress: t.recipient,
       signatures: t.signatures,
@@ -483,6 +450,15 @@ class ArkAdapter {
       timestamp,
       numberOfTransactions,
     };
+  }
+
+  convertUnixToEpochTimestamp(unixTimestamp) {
+    let epochTimestamp = Math.round(unixTimestamp / UNIX_MILLISECONDS_FACTOR) - UNIX_EPOCH_OFFSET;
+    return epochTimestamp < 0 ? 0 : epochTimestamp;
+  }
+
+  convertEpochToUnixTimestamp(epochTimestamp) {
+    return (epochTimestamp + UNIX_EPOCH_OFFSET) * UNIX_MILLISECONDS_FACTOR;
   }
 }
 

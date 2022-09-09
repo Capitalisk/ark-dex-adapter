@@ -14,7 +14,6 @@ const wait = (duration) =>
 describe('DEX API tests', async () => {
   let adapterModule;
   let bootstrapEventTriggered;
-  let chainChangeEvents = [];
 
   before(async () => {
     adapterModule = new ArkDEXAdapter({
@@ -46,13 +45,6 @@ describe('DEX API tests', async () => {
       },
     );
 
-    this.channel.subscribe(
-      `${adapterModule.alias}:${adapterModule.MODULE_CHAIN_STATE_CHANGES_EVENT}`,
-      (payload) => {
-        chainChangeEvents.push(payload);
-      },
-    );
-
     await adapterModule.load(this.channel);
   });
 
@@ -75,7 +67,6 @@ describe('DEX API tests', async () => {
     it('should expose an events property', () => {
       let events = adapterModule.events;
       assert(events.includes('bootstrap'));
-      assert(events.includes('chainChanges'));
     });
   });
 
@@ -181,7 +172,7 @@ describe('DEX API tests', async () => {
         assert(Array.isArray(transactions));
         assert.strictEqual(transactions.length, 3);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[0].message, 'ihsdaoidhsaohdas');
+        assert.strictEqual(transactions[0].message, '');
         assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
         assert.strictEqual(transactions[1].message, '');
         assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
@@ -196,12 +187,7 @@ describe('DEX API tests', async () => {
         }
       });
 
-      // TODO: Default is desc
-      // Check how DEX needs to handle that
-      // See both tests below, one expects asc while the API returns DESC
-      // The other expects DESC and needs ASC for it to pass
-      // FIXME: Using DESC Rather than ASC by default
-      it('should return transactions which are greater than fromTimestamp by default in asc order', async () => {
+      it('should return transactions which are greater than or equal to fromTimestamp by default in asc order', async () => {
         let transactions =
           await adapterModule.actions.getOutboundTransactions.handler({
             params: {
@@ -214,19 +200,19 @@ describe('DEX API tests', async () => {
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 3);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[0].timestamp, 1662560648);
+        assert.strictEqual(transactions[0].timestamp, 1662475640000);
         assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[1].timestamp, 1662500592);
+        assert.strictEqual(transactions[1].timestamp, 1662476184000);
         assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[2].timestamp, 1662476536);
+        assert.strictEqual(transactions[2].timestamp, 1662476536000);
       });
 
-      it('should return transactions are lower than than fromTimestamp when order is desc', async () => {
+      it('should return transactions which are less than or equal to fromTimestamp when order is desc', async () => {
         let transactions =
           await adapterModule.actions.getOutboundTransactions.handler({
             params: {
               walletAddress: senderWalletAddress,
-              fromTimestamp: 172374440,
+              fromTimestamp: 1662560648000,
               limit: 3,
               order: 'desc',
             },
@@ -235,11 +221,11 @@ describe('DEX API tests', async () => {
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 3);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[0].timestamp, 1662560648);
+        assert.strictEqual(transactions[0].timestamp, 1662560648000);
         assert.strictEqual(transactions[1].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[1].timestamp, 1662500592);
+        assert.strictEqual(transactions[1].timestamp, 1662500592000);
         assert.strictEqual(transactions[2].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[2].timestamp, 1662476536);
+        assert.strictEqual(transactions[2].timestamp, 1662476536000);
       });
 
       it('should limit the number of transactions based on the specified limit', async () => {
@@ -251,10 +237,11 @@ describe('DEX API tests', async () => {
               limit: 1,
             },
           });
+
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 1);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
-        assert.strictEqual(transactions[0].message, 'ihsdaoidhsaohdas');
+        assert.strictEqual(transactions[0].message, '');
       });
 
       it('should return an empty array if no transactions can be matched', async () => {
@@ -262,7 +249,7 @@ describe('DEX API tests', async () => {
           await adapterModule.actions.getOutboundTransactions.handler({
             params: {
               walletAddress: senderWalletAddress,
-              fromTimestamp: 213123213,
+              fromTimestamp: 1703224413000,
               limit: 100,
             },
           });
@@ -518,16 +505,5 @@ describe('DEX API tests', async () => {
     it('should trigger bootstrap event after launch', async () => {
       assert(bootstrapEventTriggered);
     });
-
-    it('should expose a chainChanges event', async () => {
-      await wait(5000);
-      assert(chainChangeEvents.length >= 1);
-      let eventData = chainChangeEvents[0].data;
-      assert.strictEqual(eventData.type, 'addBlock');
-      let { block } = eventData;
-      assert.notStrictEqual(block, null);
-      assert(Number.isInteger(block.height));
-      assert(Number.isInteger(block.timestamp));
-    }).timeout(30000);
   });
 });

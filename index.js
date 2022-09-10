@@ -12,6 +12,9 @@ const DEFAULT_CHAIN_SYMBOL = 'ark';
 const DEX_TRANSACTION_ID_LENGTH = 44;
 const UNIX_MILLISECONDS_FACTOR = 1000;
 const UNIX_EPOCH_OFFSET = 1490101200;
+const MIN_API_RECORDS = 1;
+const MAX_API_RECORDS = 100;
+const MAX_TRANSACTIONS_PER_BLOCK = 500;
 
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
 
@@ -271,18 +274,33 @@ class ArkAdapter {
     params: { walletAddress, blockId },
   }) {
     try {
-      const query = this.queryBuilder({
-        page: 1,
-        recipientId: walletAddress,
-        blockId,
-      });
+      let page = 0;
+      let pageCount = 1;
+      let transactionList = [];
 
-      // https://api.ark.io/api/transactions?page=1&recipientId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=428298302dd08c34c59ce46f55c0fffecc1e2ffa30ec194fe9a99d2b4efe8e4f
-      const transactions = (
-        await axios.get(`${this.arkAddress}/transactions${query}`)
-      ).data.data;
+      while (++page <= pageCount && transactionList.length < MAX_TRANSACTIONS_PER_BLOCK) {
+        const limit = Math.max(Math.min(MAX_TRANSACTIONS_PER_BLOCK - transactionList.length, MAX_API_RECORDS), MIN_API_RECORDS);
+        const query = this.queryBuilder({
+          page,
+          limit,
+          recipientId: walletAddress,
+          blockId,
+        });
 
-      return transactions.map(this.transactionMapper);
+        // https://api.ark.io/api/transactions?page=1&recipientId=DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV&blockId=4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b
+        const response = (
+          await axios.get(`${this.arkAddress}/transactions${query}`)
+        ).data;
+
+        let currentTransactions = response.data || [];
+
+        for (let txn of currentTransactions) {
+          transactionList.push(txn);
+        }
+        pageCount = (response.meta || {}).pageCount;
+      }
+
+      return transactionList.map(this.transactionMapper);
     } catch (err) {
       if (notFound(err)) {
         return [];
@@ -299,18 +317,33 @@ class ArkAdapter {
     params: { walletAddress, blockId },
   }) {
     try {
-      const query = this.queryBuilder({
-        page: 1,
-        senderId: walletAddress,
-        blockId,
-      });
+      let page = 0;
+      let pageCount = 1;
+      let transactionList = [];
 
-      // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115
-      const transactions = (
-        await axios.get(`${this.arkAddress}/transactions${query}`)
-      ).data.data;
+      while (++page <= pageCount && transactionList.length < MAX_TRANSACTIONS_PER_BLOCK) {
+        const limit = Math.max(Math.min(MAX_TRANSACTIONS_PER_BLOCK - transactionList.length, MAX_API_RECORDS), MIN_API_RECORDS);
+        const query = this.queryBuilder({
+          page,
+          limit,
+          senderId: walletAddress,
+          blockId,
+        });
 
-      return transactions.map(this.transactionMapper);
+        // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115
+        const response = (
+          await axios.get(`${this.arkAddress}/transactions${query}`)
+        ).data;
+
+        let currentTransactions = response.data || [];
+
+        for (let txn of currentTransactions) {
+          transactionList.push(txn);
+        }
+        pageCount = (response.meta || {}).pageCount;
+      }
+
+      return transactionList.map(this.transactionMapper);
     } catch (err) {
       if (notFound(err)) {
         return [];

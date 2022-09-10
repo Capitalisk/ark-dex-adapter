@@ -269,6 +269,7 @@ describe('DEX API tests', async () => {
                 '4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b',
             },
           });
+
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 1);
         let txn = transactions[0];

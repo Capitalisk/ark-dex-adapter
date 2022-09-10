@@ -414,10 +414,12 @@ describe('DEX API tests', async () => {
           });
         assert.strictEqual(Array.isArray(blocks), true);
         assert.strictEqual(blocks.length, 20);
-        let block = blocks[0];
-        assert.strictEqual(typeof block.id, 'string');
-        assert.strictEqual(Number.isInteger(block.timestamp), true);
-        assert.strictEqual(block.height, 12499710);
+        assert.strictEqual(typeof blocks[0].id, 'string');
+        assert.strictEqual(Number.isInteger(blocks[0].timestamp), true);
+        assert.strictEqual(blocks[0].height, 12499710);
+        assert.strictEqual(typeof blocks[19].id, 'string');
+        assert.strictEqual(Number.isInteger(blocks[19].timestamp), true);
+        assert.strictEqual(blocks[19].height, 12499729);
       });
 
       it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {

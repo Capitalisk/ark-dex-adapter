@@ -363,8 +363,9 @@ class ArkAdapter {
 
   async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
     const query = this.queryBuilder({
-      'height.from': fromHeight,
+      'height.from': fromHeight + 1,
       'height.to': toHeight,
+      orderBy: 'asc',
       limit,
     });
 

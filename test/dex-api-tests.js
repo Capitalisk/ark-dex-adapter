@@ -403,7 +403,7 @@ describe('DEX API tests', async () => {
     });
 
     describe('getBlocksBetweenHeights action', async () => {
-      it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {
+      it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
         let blocks =
           await adapterModule.actions.getBlocksBetweenHeights.handler({
             params: {
@@ -413,14 +413,14 @@ describe('DEX API tests', async () => {
             },
           });
         assert.strictEqual(Array.isArray(blocks), true);
-        assert.strictEqual(blocks.length, 21);
+        assert.strictEqual(blocks.length, 20);
         let block = blocks[0];
         assert.strictEqual(typeof block.id, 'string');
         assert.strictEqual(Number.isInteger(block.timestamp), true);
-        assert.strictEqual(block.height, 12499729);
+        assert.strictEqual(block.height, 12499710);
       });
 
-      it('should return blocks whose height is greater than fromHeight and less than or strictEqual to toHeight', async () => {
+      it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
         let blocks =
           await adapterModule.actions.getBlocksBetweenHeights.handler({
             params: {

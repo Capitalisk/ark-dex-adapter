@@ -57,6 +57,16 @@ class ArkAdapter {
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
 
     this.transactionMapper = (transaction) => {
+      let signatureList = transaction.signatures || [];
+      let sparseSignatureList = [];
+      for (let signature of signatureList) {
+        if (typeof signature !== 'string') {
+          continue;
+        }
+        let index = parseInt(signature.slice(0, 2), 16);
+        sparseSignatureList[index] = signature;
+      }
+
       let sanitizedTransaction = {
         ...transaction,
         signatures: this.dexMultisigPublicKeys
@@ -66,7 +76,7 @@ class ArkAdapter {
             return {
               signerAddress,
               publicKey,
-              signature: (transaction.signatures || [])[index],
+              signature: sparseSignatureList[index],
             };
           })
           .filter((signaturePacket) => signaturePacket.signature),
@@ -396,23 +406,23 @@ class ArkAdapter {
   }
 
   async postTransaction({ params: { transaction } }) {
-    // TODO: axios POST
-    const {
-      data: { data },
-    } = axios.post(`${this.arkAddress}/transactions`, {
-      body: {
+    try {
+      const response = await axios.post(`${this.arkAddress}/transactions`, {
         transactions: [transaction],
-      },
-    });
-
-    if (data.length) {
-      return data[0];
+      });
+      if (response.data.errors) {
+        let firstError = Object.values(response.data.errors)[0] || {};
+        let firstErrorMessage = firstError.message || 'Unknown error';
+        throw new Error(firstErrorMessage);
+      }
+    } catch (error) {
+      let errorMessage = error.response && error.response.data && error.response.data.message ?
+        `${error.message} - ${error.response.data.message}` : error.message;
+      throw new InvalidActionError(
+        transactionBroadcastError,
+        `Error broadcasting transaction to the ark network because of error: ${errorMessage}`,
+      );
     }
-
-    throw new InvalidActionError(
-      transactionBroadcastError,
-      `Error broadcasting transaction to the ark network`,
-    );
   }
 
   async getRequiredDexWalletInformation() {

@@ -481,8 +481,8 @@ describe('DEX API tests', async () => {
       });
     });
 
-    describe('postTransaction action', async () => {
-      it.only('should accept a prepared (signed) transaction object as argument', async () => {
+    describe.skip('postTransaction action', async () => {
+      it('should accept a prepared (signed) transaction object as argument', async () => {
         // The format of the prepared (signed) transaction will be different depending on the
         // implementation of the chain module and the specified ChainCrypto adapter.
         // Since this is used for posting multisig transactions, the transaction will have

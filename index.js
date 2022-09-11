@@ -433,11 +433,12 @@ class ArkAdapter {
       type: transaction.type,
       typeGroup: transaction.typeGroup,
       senderPublicKey: transaction.senderPublicKey,
-      recipientId: transaction.recipientId,
+      recipientId: transaction.recipientAddress,
       amount: transaction.amount,
       fee: transaction.fee,
       expiration: transaction.expiration,
       nonce: transaction.nonce,
+      vendorField: transaction.message,
       signatures,
     };
     try {

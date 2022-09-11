@@ -406,9 +406,34 @@ class ArkAdapter {
   }
 
   async postTransaction({ params: { transaction } }) {
+    const signaturePacketList = transaction.signatures || [];
+    const publicKeySignatures = {};
+    for (let signaturePacket of signaturePacketList) {
+        publicKeySignatures[signaturePacket.publicKey] = signaturePacket;
+    }
+
+    const signatures = this.dexMultisigPublicKeys.map((memberPublicKey) => {
+      let signaturePacket = publicKeySignatures[memberPublicKey];
+      return signaturePacket && signaturePacket.signature;
+    }).filter(signature => signature);
+
+    const signedTxn = {
+      id: transaction.id,
+      version: transaction.version,
+      network: transaction.network,
+      type: transaction.type,
+      typeGroup: transaction.typeGroup,
+      senderPublicKey: transaction.senderPublicKey,
+      recipientId: transaction.recipientId,
+      amount: transaction.amount,
+      fee: transaction.fee,
+      expiration: transaction.expiration,
+      nonce: transaction.nonce,
+      signatures,
+    };
     try {
       const response = await axios.post(`${this.arkAddress}/transactions`, {
-        transactions: [transaction],
+        transactions: [signedTxn],
       });
       if (response.data.errors) {
         let firstError = Object.values(response.data.errors)[0] || {};
@@ -447,7 +472,7 @@ class ArkAdapter {
       throw new Error('Dex wallet address not provided in the config');
     }
 
-    this.getRequiredDexWalletInformation();
+    await this.getRequiredDexWalletInformation();
 
     this.channel = channel;
 

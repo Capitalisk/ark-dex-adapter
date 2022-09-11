@@ -481,39 +481,6 @@ describe('DEX API tests', async () => {
       });
     });
 
-/*
-export interface ITransactionData {
-    version?: number;
-    network?: number;
-    typeGroup?: number;
-    type: number;
-    timestamp: number;
-    nonce?: BigNumber;
-    senderPublicKey: string | undefined;
-    fee: BigNumber;
-    amount: BigNumber;
-    expiration?: number;
-    recipientId?: string;
-    asset?: ITransactionAsset;
-    vendorField?: string;
-    id?: string;
-    signature?: string;
-    secondSignature?: string;
-    signSignature?: string;
-    signatures?: string[];
-    blockId?: string;
-    blockHeight?: number;
-    sequence?: number;
-}
-
-
-export interface IKeyPair {
-    publicKey: string;
-    privateKey: string;
-    compressed: boolean;
-}
-
-*/
     describe('postTransaction action', async () => {
       it.only('should accept a prepared (signed) transaction object as argument', async () => {
         // The format of the prepared (signed) transaction will be different depending on the
@@ -524,6 +491,9 @@ export interface IKeyPair {
         // adapter but it will have a 'signerAddress' property.
         // The chain module can handle the transaction and signature objects however it wants.
 
+        // The nonce needs to be incremented manually for testing; it must equal to the multisig wallet account nonce + 1
+        let nonce = 5;
+
         // Needs to be set to a height which supports version 2 transactions.
         Managers.configManager.setHeight(20000000);
 
@@ -531,8 +501,8 @@ export interface IKeyPair {
 
         let preparedTxn = transferBuilder
           .version(2)
-          .nonce(3)
-          .amount(12300000)
+          .nonce(nonce)
+          .amount(50000000)
           .fee(5000000)
           .senderPublicKey('0398db7e710602fffe50f137d536735c7fc1bcfa79cefd659cb7b8d118bf5bbbf0')
           .recipientId('DTY1sPZrWDynB5zDYrhuv1oZ5SHNfc7Bnm')
@@ -542,47 +512,40 @@ export interface IKeyPair {
 
         let privateKeyA = Identities.PrivateKey.fromPassphrase('eternal shrimp catch pause giraffe yard hat day pull august brush sign apple strategy clutch animal heavy escape car walk juice umbrella pluck must');
 
-        let signatureA = Transactions.Signer.multiSign(preparedTxn.data, {
+        Transactions.Signer.multiSign(preparedTxn.data, {
           publicKey: '02bb3481404dfc0e441fa6dac4a5eae9c218c6145d09522e0ebe4aa944315dac26',
           privateKey: privateKeyA,
-          compressed: false,
         }, 0);
 
         let privateKeyB = Identities.PrivateKey.fromPassphrase('warfare grocery replace donor park void begin math woman latin body life');
 
-        let signatureB = Transactions.Signer.multiSign(preparedTxn.data, {
+        Transactions.Signer.multiSign(preparedTxn.data, {
           publicKey: '02a2390273dca76d9e2ec9b5b181294d7e1251f5f4e8e268ef062ec00c98e13480',
           privateKey: privateKeyB,
-          compressed: false,
         }, 1);
-
 
         preparedTxn.data.amount = preparedTxn.data.amount.toString();
         preparedTxn.data.fee = preparedTxn.data.fee.toString();
         preparedTxn.data.nonce = preparedTxn.data.nonce.toString();
 
-        console.log('---- Prepared transaction: ', preparedTxn.data);
+        preparedTxn.data.signatures = [
+          {
+            signerAddress: 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV',
+            publicKey: '02bb3481404dfc0e441fa6dac4a5eae9c218c6145d09522e0ebe4aa944315dac26',
+            signature: preparedTxn.data.signatures[0],
+          },
+          {
+            signerAddress: 'DRzgcj97d3hFdLJjYhPTdBQNVeb92mzrx5',
+            publicKey: '02a2390273dca76d9e2ec9b5b181294d7e1251f5f4e8e268ef062ec00c98e13480',
+            signature: preparedTxn.data.signatures[1],
+          }
+        ];
 
         await adapterModule.actions.postTransaction.handler({
           params: {
             transaction: preparedTxn.data,
-            // transaction: Transactions.Serializer.serialize(preparedTxn).toString('hex'),
           },
         });
-
-        // let preparedTxn = await client.prepareTransaction({
-        //   type: 'transfer',
-        //   recipientAddress: 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199',
-        //   amount: '3300000000',
-        //   fee: '100000000',
-        //   timestamp: 100000,
-        //   message: '',
-        // });
-        // await adapterModule.actions.postTransaction.handler({
-        //   params: {
-        //     transaction: preparedTxn,
-        //   },
-        // });
       });
     });
   });

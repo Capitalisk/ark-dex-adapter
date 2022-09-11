@@ -406,7 +406,7 @@ describe('DEX API tests', async () => {
     });
 
     describe('getBlocksBetweenHeights action', async () => {
-      it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
+      it.only('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
         let blocks =
           await adapterModule.actions.getBlocksBetweenHeights.handler({
             params: {
@@ -419,9 +419,13 @@ describe('DEX API tests', async () => {
         assert.strictEqual(blocks.length, 20);
         assert.strictEqual(typeof blocks[0].id, 'string');
         assert.strictEqual(Number.isInteger(blocks[0].timestamp), true);
+        // Although numberOfTransactions is not required, it provides a significant performance boost.
+        assert.strictEqual(Number.isInteger(blocks[0].numberOfTransactions), true);
         assert.strictEqual(blocks[0].height, 12499710);
         assert.strictEqual(typeof blocks[19].id, 'string');
         assert.strictEqual(Number.isInteger(blocks[19].timestamp), true);
+        // Although numberOfTransactions is not required, it provides a significant performance boost.
+        assert.strictEqual(Number.isInteger(blocks[19].numberOfTransactions), true);
         assert.strictEqual(blocks[19].height, 12499729);
       });
 
@@ -462,6 +466,8 @@ describe('DEX API tests', async () => {
         assert.notStrictEqual(block, null);
         assert.strictEqual(block.height, 12499729);
         assert.strictEqual(Number.isInteger(block.timestamp), true);
+        // Although numberOfTransactions is not required, it provides a significant performance boost.
+        assert.strictEqual(Number.isInteger(block.numberOfTransactions), true);
       });
 
       it('should throw a BlockDidNotExistError if no block could be matched', async () => {

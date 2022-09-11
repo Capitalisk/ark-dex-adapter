@@ -56,6 +56,15 @@ class ArkAdapter {
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
 
+    this.blockMapper = (block) => {
+      return {
+        id: block.id,
+        height: block.height,
+        timestamp: block.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
+        numberOfTransactions: block.transactions,
+      }
+    };
+
     this.transactionMapper = (transaction) => {
       let signatureList = transaction.signatures || [];
       let sparseSignatureList = [];
@@ -79,7 +88,7 @@ class ArkAdapter {
               signature: sparseSignatureList[index],
             };
           })
-          .filter((signaturePacket) => signaturePacket.signature),
+          .filter(signaturePacket => signaturePacket.signature),
       };
 
       return this.sanitizeTransaction(sanitizedTransaction);
@@ -383,7 +392,7 @@ class ArkAdapter {
       data: { data },
     } = await axios.get(`${this.arkAddress}/blocks/${query}`);
 
-    return data.map((b) => ({ ...b, timestamp: b.timestamp.unix * UNIX_MILLISECONDS_FACTOR }));
+    return data.map(this.blockMapper);
   }
 
   async getBlockAtHeight({ params: { height } }) {
@@ -396,7 +405,7 @@ class ArkAdapter {
     } = await axios.get(`${this.arkAddress}/blocks${query}`);
 
     if (data.length) {
-      return data.map((b) => ({ ...b, timestamp: b.timestamp.unix * UNIX_MILLISECONDS_FACTOR }))[0];
+      return data.map(this.blockMapper)[0];
     }
 
     throw new InvalidActionError(
@@ -509,15 +518,6 @@ class ArkAdapter {
       recipientAddress: t.recipient,
       signatures: t.signatures,
       nonce: t.nonce,
-    };
-  }
-
-  blockMapper({ id, height, timestamp, numberOfTransactions }) {
-    return {
-      id,
-      height,
-      timestamp,
-      numberOfTransactions,
     };
   }
 

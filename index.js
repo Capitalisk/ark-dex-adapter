@@ -76,7 +76,7 @@ class ArkAdapter {
         sparseSignatureList[index] = signature;
       }
 
-      let sanitizedTransaction = {
+      let preparedTransaction = {
         ...transaction,
         signatures: this.dexMultisigPublicKeys
           .map((publicKey, index) => {
@@ -91,7 +91,7 @@ class ArkAdapter {
           .filter(signaturePacket => signaturePacket.signature),
       };
 
-      return this.sanitizeTransaction(sanitizedTransaction);
+      return this.sanitizeTransaction(preparedTransaction);
     };
   }
 
@@ -508,16 +508,16 @@ class ArkAdapter {
     return query;
   }
 
-  sanitizeTransaction(t) {
+  sanitizeTransaction(txn) {
     return {
-      id: t.id,
-      message: t.vendorField || '',
-      amount: t.amount,
-      timestamp: t.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
-      senderAddress: t.sender,
-      recipientAddress: t.recipient,
-      signatures: t.signatures,
-      nonce: t.nonce,
+      id: txn.id,
+      message: txn.vendorField || '',
+      amount: txn.amount,
+      timestamp: txn.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
+      senderAddress: txn.sender,
+      recipientAddress: txn.recipient,
+      signatures: txn.signatures,
+      nonce: txn.nonce,
     };
   }
 

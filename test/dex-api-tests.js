@@ -406,7 +406,7 @@ describe('DEX API tests', async () => {
     });
 
     describe('getBlocksBetweenHeights action', async () => {
-      it.only('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
+      it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight in asc order', async () => {
         let blocks =
           await adapterModule.actions.getBlocksBetweenHeights.handler({
             params: {

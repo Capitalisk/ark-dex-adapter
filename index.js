@@ -7,7 +7,7 @@ const packageJSON = require('./package.json');
 const { default: axios } = require('axios');
 
 const DEFAULT_MODULE_ALIAS = 'ark_dex_adapter';
-const DEFAULT_ADDRESS = 'https://api.ark.io/api';
+const DEFAULT_API_URL = 'https://api.ark.io/api';
 const DEFAULT_CHAIN_SYMBOL = 'ark';
 const DEX_TRANSACTION_ID_LENGTH = 44;
 const UNIX_MILLISECONDS_FACTOR = 1000;
@@ -52,7 +52,7 @@ class ArkAdapter {
     this.logger = options.logger || console;
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || DEFAULT_CHAIN_SYMBOL;
-    this.arkAddress = options.config.address || DEFAULT_ADDRESS;
+    this.apiURL = options.config.apiURL || DEFAULT_API_URL;
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
 
@@ -157,7 +157,7 @@ class ArkAdapter {
       });
 
       const account = (
-        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+        (await axios.get(`${this.apiURL}/wallets/${query}`)).data.data || []
       )[0];
 
       if (account) {
@@ -196,7 +196,7 @@ class ArkAdapter {
       });
 
       let account = (
-        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+        (await axios.get(`${this.apiURL}/wallets/${query}`)).data.data || []
       )[0];
 
       if (account) {
@@ -243,7 +243,7 @@ class ArkAdapter {
       const query = this.queryBuilder(queryParams);
 
       const transactions = (
-        await axios.get(`${this.arkAddress}/transactions${query}`)
+        await axios.get(`${this.apiURL}/transactions${query}`)
       ).data.data;
 
       return transactions.map(this.transactionMapper);
@@ -274,7 +274,7 @@ class ArkAdapter {
 
       // https://api.ark.io/api/transactions?page=1&recipientId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&timestamp.from=121676312&limit=100
       const transactions = (
-        await axios.get(`${this.arkAddress}/transactions${query}`)
+        await axios.get(`${this.apiURL}/transactions${query}`)
       ).data.data;
 
       return transactions.map(this.transactionMapper);
@@ -310,7 +310,7 @@ class ArkAdapter {
 
         // https://api.ark.io/api/transactions?page=1&recipientId=DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV&blockId=4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b
         const response = (
-          await axios.get(`${this.arkAddress}/transactions${query}`)
+          await axios.get(`${this.apiURL}/transactions${query}`)
         ).data;
 
         let currentTransactions = response.data || [];
@@ -354,7 +354,7 @@ class ArkAdapter {
 
         // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115
         const response = (
-          await axios.get(`${this.arkAddress}/transactions${query}`)
+          await axios.get(`${this.apiURL}/transactions${query}`)
         ).data;
 
         let currentTransactions = response.data || [];
@@ -379,7 +379,7 @@ class ArkAdapter {
   }
 
   async getMaxBlockHeight() {
-    return (await axios.get(`${this.arkAddress}/blockchain`)).data.data.block.height;
+    return (await axios.get(`${this.apiURL}/blockchain`)).data.data.block.height;
   }
 
   async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
@@ -392,7 +392,7 @@ class ArkAdapter {
 
     const {
       data: { data },
-    } = await axios.get(`${this.arkAddress}/blocks/${query}`);
+    } = await axios.get(`${this.apiURL}/blocks/${query}`);
 
     return data.map(this.blockMapper);
   }
@@ -404,7 +404,7 @@ class ArkAdapter {
 
     const {
       data: { data },
-    } = await axios.get(`${this.arkAddress}/blocks${query}`);
+    } = await axios.get(`${this.apiURL}/blocks${query}`);
 
     if (data.length) {
       return data.map(this.blockMapper)[0];
@@ -444,7 +444,7 @@ class ArkAdapter {
       signatures,
     };
     try {
-      const response = await axios.post(`${this.arkAddress}/transactions`, {
+      const response = await axios.post(`${this.apiURL}/transactions`, {
         transactions: [signedTxn],
       });
       if (response.data.errors) {
@@ -469,7 +469,7 @@ class ArkAdapter {
       });
 
       let account = (
-        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+        (await axios.get(`${this.apiURL}/wallets/${query}`)).data.data || []
       )[0];
 
       if (!account) {
@@ -494,7 +494,7 @@ class ArkAdapter {
 
   async getRequiredDexWalletInformation() {
     const account = (
-      await axios.get(`${this.arkAddress}/wallets/${this.dexWalletAddress}`)
+      await axios.get(`${this.apiURL}/wallets/${this.dexWalletAddress}`)
     ).data.data;
 
     if (!account) {

@@ -17,7 +17,7 @@ const moduleAdapter = new ArkAdapter({
       // OPTIONAL
       chainSymbol: 'ark', // Default: 'ark'
       // OPTIONAL
-      arkAddress: 'https://dapi.ark.io/api', // Default: 'https://api.ark.io/api'
+      apiURL: 'https://dapi.ark.io/api', // Default: 'https://api.ark.io/api'
       // OPTIONAL
       // Interval to which the adapter polls the API to get new blocks
       pollingInterval: 2000, // Default: 10000

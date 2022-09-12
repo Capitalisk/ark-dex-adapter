@@ -3,9 +3,7 @@ const assert = require('assert');
 const ArkDEXAdapter = require('../index');
 const Channel = require('./utils/channel');
 const AppModuleMock = require('./utils/app');
-const { Transactions, Identities, Managers } = require('@arkecosystem/crypto');
-
-// console.log(2222, Transactions.Signer.multiSign);
+const { Transactions, Identities, Managers, Utils, Crypto } = require('@arkecosystem/crypto');
 
 const wait = (duration) =>
   new Promise((resolve) => setTimeout(resolve, duration));
@@ -23,7 +21,7 @@ describe('DEX API tests', async () => {
       config: {
         env: 'test',
         dexWalletAddress: 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV',
-        address: 'https://dapi.ark.io/api',
+        apiURL: 'https://dapi.ark.io/api',
       },
       logger: {
         info: () => {},
@@ -318,7 +316,7 @@ describe('DEX API tests', async () => {
     });
 
     describe('getOutboundTransactionsFromBlock action', async () => {
-      it('should return an array of transactions sent to the specified walletAddress', async () => {
+      it('should return an array of transactions sent to the specified walletAddress in asc order', async () => {
         const senderAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
         let transactions =
           await adapterModule.actions.getOutboundTransactionsFromBlock.handler({

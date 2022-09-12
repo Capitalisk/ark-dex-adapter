@@ -142,6 +142,7 @@ class ArkAdapter {
       },
       getBlockAtHeight: { handler: (action) => this.getBlockAtHeight(action) },
       postTransaction: { handler: (action) => this.postTransaction(action) },
+      getAccount: { handler: (action) => this.getAccount(action) },
     };
   }
 
@@ -378,8 +379,7 @@ class ArkAdapter {
   }
 
   async getMaxBlockHeight() {
-    return (await axios.get(`${this.arkAddress}/blockchain`)).data.data.block
-      .height;
+    return (await axios.get(`${this.arkAddress}/blockchain`)).data.data.block.height;
   }
 
   async getBlocksBetweenHeights({ params: { fromHeight, toHeight, limit } }) {
@@ -458,6 +458,36 @@ class ArkAdapter {
       throw new InvalidActionError(
         transactionBroadcastError,
         `Error broadcasting transaction to the ark network because of error: ${errorMessage}`,
+      );
+    }
+  }
+
+  async getAccount({ params: { walletAddress } }) {
+    try {
+      const query = this.queryBuilder({
+        address: walletAddress,
+      });
+
+      let account = (
+        (await axios.get(`${this.arkAddress}/wallets/${query}`)).data.data || []
+      )[0];
+
+      if (!account) {
+        throw new InvalidActionError(
+          accountDidNotExistError,
+          `Error getting account with address ${walletAddress}`,
+        );
+      }
+      return account;
+
+    } catch (err) {
+      if (err instanceof InvalidActionError) {
+        throw err;
+      }
+      throw new InvalidActionError(
+        accountDidNotExistError,
+        `Error getting account with address ${walletAddress}`,
+        err,
       );
     }
   }

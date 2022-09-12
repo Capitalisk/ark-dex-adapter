@@ -170,6 +170,7 @@ describe('DEX API tests', async () => {
               limit: 3,
             },
           });
+
         assert(Array.isArray(transactions));
         assert.strictEqual(transactions.length, 3);
         assert.strictEqual(transactions[0].senderAddress, senderWalletAddress);
@@ -270,7 +271,6 @@ describe('DEX API tests', async () => {
                 '4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b',
             },
           });
-
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 1);
         let txn = transactions[0];
@@ -326,6 +326,7 @@ describe('DEX API tests', async () => {
                 'bc9edb2acde2004b313c145bb12c5913fdc344a21150e843f7fab31a2041e759',
             },
           });
+
         assert.strictEqual(Array.isArray(transactions), true);
         assert.strictEqual(transactions.length, 1);
 

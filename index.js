@@ -12,7 +12,6 @@ const DEFAULT_CHAIN_SYMBOL = 'ark';
 const DEX_TRANSACTION_ID_LENGTH = 44;
 const UNIX_MILLISECONDS_FACTOR = 1000;
 const UNIX_EPOCH_OFFSET = 1490101200;
-const MIN_API_RECORDS = 1;
 const MAX_API_RECORDS = 100;
 const MAX_TRANSACTIONS_PER_BLOCK = 500;
 
@@ -225,59 +224,53 @@ class ArkAdapter {
   }
 
   async getOutboundTransactions({
-    params: { walletAddress, fromTimestamp, limit, order },
+    params: { walletAddress, fromTimestamp, limit: totalLimit, order },
   }) {
     fromTimestamp = this.convertUnixToEpochTimestamp(fromTimestamp);
+    let offset = 0;
+    let transactionList = [];
+
     try {
-      let queryParams = {
-        page: 1,
-        senderId: walletAddress,
-        limit,
-        orderBy: `timestamp:${order || 'asc'}`,
-      };
-      if (order === 'desc') {
-        queryParams['timestamp.to'] = fromTimestamp;
-      } else {
-        queryParams['timestamp.from'] = fromTimestamp;
+      while (true) {
+        const limit = Math.min(totalLimit - transactionList.length, MAX_API_RECORDS);
+
+        if (limit <= 0) {
+          break;
+        }
+
+        let queryParams = {
+          offset,
+          senderId: walletAddress,
+          limit,
+          orderBy: `timestamp:${order || 'asc'}`,
+        };
+
+        if (order === 'desc') {
+          queryParams['timestamp.to'] = fromTimestamp;
+        } else {
+          queryParams['timestamp.from'] = fromTimestamp;
+        }
+        const query = this.queryBuilder(queryParams);
+
+        const result = (
+          await axios.get(`${this.apiURL}/transactions${query}`)
+        ).data;
+
+        let currentTransactions = result.data || [];
+
+        if (!currentTransactions.length) {
+          break;
+        }
+
+        for (let txn of currentTransactions) {
+          transactionList.push(txn);
+        }
+
+        offset += currentTransactions.length;
       }
-      const query = this.queryBuilder(queryParams);
 
-      const transactions = (
-        await axios.get(`${this.apiURL}/transactions${query}`)
-      ).data.data;
+      return transactionList.map(this.transactionMapper);
 
-      return transactions.map(this.transactionMapper);
-    } catch (err) {
-      if (notFound(err)) {
-        return [];
-      }
-      throw new InvalidActionError(
-        accountDidNotExistError,
-        `Error getting outbound transactions with account address ${walletAddress}`,
-        err,
-      );
-    }
-  }
-
-  async getInboundTransactions({
-    params: { walletAddress, fromTimestamp, limit, order },
-  }) {
-    fromTimestamp = this.convertUnixToEpochTimestamp(fromTimestamp);
-    try {
-      const query = this.queryBuilder({
-        page: 1,
-        recipientId: walletAddress,
-        'timestamp.from': fromTimestamp,
-        limit,
-        orderBy: `timestamp:${order || 'asc'}`,
-      });
-
-      // https://api.ark.io/api/transactions?page=1&recipientId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&timestamp.from=121676312&limit=100
-      const transactions = (
-        await axios.get(`${this.apiURL}/transactions${query}`)
-      ).data.data;
-
-      return transactions.map(this.transactionMapper);
     } catch (err) {
       if (notFound(err)) {
         return [];
@@ -293,86 +286,69 @@ class ArkAdapter {
   async getInboundTransactionsFromBlock({
     params: { walletAddress, blockId },
   }) {
-    try {
-      let page = 0;
-      let pageCount = 1;
-      let transactionList = [];
-
-      while (++page <= pageCount && transactionList.length < MAX_TRANSACTIONS_PER_BLOCK) {
-        const limit = Math.max(Math.min(MAX_TRANSACTIONS_PER_BLOCK - transactionList.length, MAX_API_RECORDS), MIN_API_RECORDS);
-        const query = this.queryBuilder({
-          page,
-          limit,
-          recipientId: walletAddress,
-          blockId,
-          orderBy: 'timestamp:asc',
-        });
-
-        // https://api.ark.io/api/transactions?page=1&recipientId=DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV&blockId=4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b
-        const response = (
-          await axios.get(`${this.apiURL}/transactions${query}`)
-        ).data;
-
-        let currentTransactions = response.data || [];
-
-        for (let txn of currentTransactions) {
-          transactionList.push(txn);
-        }
-        pageCount = (response.meta || {}).pageCount;
-      }
-
-      return transactionList.map(this.transactionMapper);
-    } catch (err) {
-      if (notFound(err)) {
-        return [];
-      }
-      throw new InvalidActionError(
-        accountDidNotExistError,
-        `Error getting outbound transactions with account address ${walletAddress}`,
-        err,
-      );
-    }
+    return this.getTransactionsFromBlock('inbound', walletAddress, blockId);
   }
 
   async getOutboundTransactionsFromBlock({
     params: { walletAddress, blockId },
   }) {
-    try {
-      let page = 0;
-      let pageCount = 1;
-      let transactionList = [];
+    return this.getTransactionsFromBlock('outbound', walletAddress, blockId);
+  }
 
-      while (++page <= pageCount && transactionList.length < MAX_TRANSACTIONS_PER_BLOCK) {
-        const limit = Math.max(Math.min(MAX_TRANSACTIONS_PER_BLOCK - transactionList.length, MAX_API_RECORDS), MIN_API_RECORDS);
-        const query = this.queryBuilder({
-          page,
+  async getTransactionsFromBlock(type, walletAddress, blockId) {
+    let offset = 0;
+    let transactionList = [];
+
+    try {
+      while (true) {
+        const limit = Math.min(MAX_TRANSACTIONS_PER_BLOCK - transactionList.length, MAX_API_RECORDS);
+
+        if (limit <= 0) {
+          break;
+        }
+
+        let queryData = {
+          offset,
           limit,
-          senderId: walletAddress,
           blockId,
           orderBy: 'timestamp:asc',
-        });
+        };
 
-        // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115
-        const response = (
+        if (type === 'inbound') {
+          queryData.recipientId = walletAddress;
+        } else {
+          queryData.senderId = walletAddress;
+        }
+
+        const query = this.queryBuilder(queryData);
+
+        // https://api.ark.io/api/transactions?page=1&recipientId=DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV&blockId=4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b
+        const result = (
           await axios.get(`${this.apiURL}/transactions${query}`)
         ).data;
 
-        let currentTransactions = response.data || [];
+        let currentTransactions = result.data || [];
+
+        if (!currentTransactions.length) {
+          break;
+        }
 
         for (let txn of currentTransactions) {
           transactionList.push(txn);
         }
-        pageCount = (response.meta || {}).pageCount;
+
+        offset += currentTransactions.length;
       }
 
       return transactionList.map(this.transactionMapper);
+
     } catch (err) {
       if (notFound(err)) {
         return [];
       }
       throw new InvalidActionError(
         accountDidNotExistError,
-        `Error getting outbound transactions with account address ${walletAddress}`,
+        `Error getting ${type} transactions with account address ${walletAddress}`,
         err,
       );
     }

@@ -304,6 +304,7 @@ class ArkAdapter {
           limit,
           recipientId: walletAddress,
           blockId,
+          orderBy: 'asc',
         });
 
         // https://api.ark.io/api/transactions?page=1&recipientId=DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV&blockId=4b77d3f58a6fe2f150e6642dc2cd35250009fb4e6b41927a3427e10bc2ca821b
@@ -347,6 +348,7 @@ class ArkAdapter {
           limit,
           senderId: walletAddress,
           blockId,
+          orderBy: 'asc',
         });
 
         // https://api.ark.io/api/transactions?page=1&senderId=AXzxJ8Ts3dQ2bvBR1tPE7GUee9iSEJb8HX&blockId=d77063512b4e3e539aa8eaaf3a8646a15e94efee564e3e0c9e8f0639fee76115

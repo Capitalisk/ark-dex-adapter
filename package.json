@@ -1,6 +1,6 @@
 {
   "name": "ark-dex-adapter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DEX adapter module for the Ark blockchain.",
   "main": "index.js",
   "scripts": {

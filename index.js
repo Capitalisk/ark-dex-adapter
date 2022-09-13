@@ -433,7 +433,7 @@ class ArkAdapter {
         `${error.message} - ${error.response.data.message}` : error.message;
       throw new InvalidActionError(
         transactionBroadcastError,
-        `Error broadcasting transaction to the ark network because of error: ${errorMessage}`,
+        `Error broadcasting transaction to the ${this.chainSymbol} network because of error: ${errorMessage}`,
       );
     }
   }

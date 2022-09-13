@@ -44,7 +44,7 @@ const blockDidNotExistError = 'BlockDidNotExistError';
 const transactionDidNotExistError = 'TransactionDidNotExistError';
 const transactionBroadcastError = 'TransactionBroadcastError';
 
-class ArkAdapter {
+class ArkDEXAdapter {
   constructor(options) {
     this.options = options || { alias, config: {}, logger: console };
     this.alias = options.alias || DEFAULT_MODULE_ALIAS;
@@ -142,6 +142,7 @@ class ArkAdapter {
       getBlockAtHeight: { handler: (action) => this.getBlockAtHeight(action) },
       postTransaction: { handler: (action) => this.postTransaction(action) },
       getAccount: { handler: (action) => this.getAccount(action) },
+      getBlock: { handler: (action) => this.getBlock(action) },
     };
   }
 
@@ -468,6 +469,36 @@ class ArkAdapter {
     }
   }
 
+  async getBlock({ params: { blockId } }) {
+    try {
+      const query = this.queryBuilder({
+        id: blockId,
+      });
+
+      let block = (
+        (await axios.get(`${this.apiURL}/blocks/${query}`)).data.data || []
+      )[0];
+
+      if (!block) {
+        throw new InvalidActionError(
+          blockDidNotExistError,
+          `Error getting block with ID ${blockId}`,
+        );
+      }
+      return this.blockMapper(block);
+
+    } catch (err) {
+      if (err instanceof InvalidActionError) {
+        throw err;
+      }
+      throw new InvalidActionError(
+        blockDidNotExistError,
+        `Error getting block with ID ${blockId}`,
+        err,
+      );
+    }
+  }
+
   async getRequiredDexWalletInformation() {
     const account = (
       await axios.get(`${this.apiURL}/wallets/${this.dexWalletAddress}`)
@@ -519,11 +550,12 @@ class ArkAdapter {
   sanitizeTransaction(txn) {
     return {
       id: txn.id,
-      message: txn.vendorField || '',
       amount: txn.amount,
-      timestamp: txn.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
       senderAddress: txn.sender,
       recipientAddress: txn.recipient,
+      blockId: txn.blockId,
+      timestamp: txn.timestamp.unix * UNIX_MILLISECONDS_FACTOR,
+      message: txn.vendorField || '',
       signatures: txn.signatures,
       nonce: txn.nonce,
     };
@@ -539,4 +571,4 @@ class ArkAdapter {
   }
 }
 
-module.exports = ArkAdapter;
+module.exports = ArkDEXAdapter;

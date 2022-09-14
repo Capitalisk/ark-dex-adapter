@@ -1,5 +1,3 @@
-// 'use strict';
-
 const crypto = require('crypto');
 const { Identities } = require('@arkecosystem/crypto');
 
@@ -406,7 +404,7 @@ class ArkDEXAdapter {
     }).filter(signature => signature);
 
     const signedTxn = {
-      id: transaction.id,
+      id: transaction.originalId,
       version: transaction.version,
       network: transaction.network,
       type: transaction.type,
@@ -549,7 +547,8 @@ class ArkDEXAdapter {
 
   sanitizeTransaction(txn) {
     return {
-      id: txn.id,
+      id: this.computeDEXTransactionId(txn.sender, txn.nonce),
+      originalId: txn.id,
       amount: txn.amount,
       senderAddress: txn.sender,
       recipientAddress: txn.recipient,
@@ -568,6 +567,10 @@ class ArkDEXAdapter {
 
   convertEpochToUnixTimestamp(epochTimestamp) {
     return (epochTimestamp + UNIX_EPOCH_OFFSET) * UNIX_MILLISECONDS_FACTOR;
+  }
+
+  computeDEXTransactionId(senderAddress, nonce) {
+    return crypto.createHash('sha256').update(`${senderAddress}-${nonce}`).digest('hex');
   }
 }
 

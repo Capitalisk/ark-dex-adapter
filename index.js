@@ -15,7 +15,7 @@ const MAX_TRANSACTIONS_PER_BLOCK = 500;
 
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
 
-const notFound = (err) => err && err.response && err.response.status === 404;
+const isUnprocessable = (err) => err && err.response && err.response.status === 422;
 
 class InvalidActionError extends Error {
   constructor(name, message, cause) {
@@ -179,10 +179,12 @@ class ArkDEXAdapter {
       if (err instanceof InvalidActionError) {
         throw err;
       }
-      throw new InvalidActionError(
-        multisigAccountDidNotExistError,
-        `Error getting multisig account with address ${walletAddress}`,
-        err,
+      throw new Error(
+        `Failed to get multisig account with address ${
+          walletAddress
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }
@@ -214,10 +216,12 @@ class ArkDEXAdapter {
       if (err instanceof InvalidActionError) {
         throw err;
       }
-      throw new InvalidActionError(
-        multisigAccountDidNotExistError,
-        `Error getting multisig account with address ${walletAddress}`,
-        err,
+      throw new Error(
+        `Failed to get multisig account with address ${
+          walletAddress
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }
@@ -271,13 +275,12 @@ class ArkDEXAdapter {
       return transactionList.map(this.transactionMapper);
 
     } catch (err) {
-      if (notFound(err)) {
-        return [];
-      }
-      throw new InvalidActionError(
-        accountDidNotExistError,
-        `Error getting outbound transactions with account address ${walletAddress}`,
-        err,
+      throw new Error(
+        `Failed to get outbound transactions of account ${
+          walletAddress
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }
@@ -342,13 +345,14 @@ class ArkDEXAdapter {
       return transactionList.map(this.transactionMapper);
 
     } catch (err) {
-      if (notFound(err)) {
-        return [];
-      }
-      throw new InvalidActionError(
-        accountDidNotExistError,
-        `Error getting ${type} transactions with account address ${walletAddress}`,
-        err,
+      throw new Error(
+        `Failed to get ${
+          type
+        } transactions of account ${
+          walletAddress
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }
@@ -425,14 +429,25 @@ class ArkDEXAdapter {
       if (response.data.errors) {
         let firstError = Object.values(response.data.errors)[0] || {};
         let firstErrorMessage = firstError.message || 'Unknown error';
-        throw new Error(firstErrorMessage);
+        throw new InvalidActionError(
+          transactionBroadcastError,
+          firstErrorMessage
+        );
       }
-    } catch (error) {
-      let errorMessage = error.response && error.response.data && error.response.data.message ?
-        `${error.message} - ${error.response.data.message}` : error.message;
-      throw new InvalidActionError(
-        transactionBroadcastError,
-        `Error broadcasting transaction to the ${this.chainSymbol} network because of error: ${errorMessage}`,
+    } catch (err) {
+      if (err instanceof InvalidActionError) {
+        throw err;
+      }
+      if (isUnprocessable(err)) {
+        throw new InvalidActionError(
+          transactionBroadcastError,
+          `Transaction could not be posted because of error: ${
+            err.message
+          }`
+        );
+      }
+      throw new Error(
+        `Failed to post transaction ${transaction.id} because of error: ${err.message}`
       );
     }
   }
@@ -450,7 +465,7 @@ class ArkDEXAdapter {
       if (!account) {
         throw new InvalidActionError(
           accountDidNotExistError,
-          `Error getting account with address ${walletAddress}`,
+          `Error getting account with address ${walletAddress}`
         );
       }
       return account;
@@ -459,10 +474,12 @@ class ArkDEXAdapter {
       if (err instanceof InvalidActionError) {
         throw err;
       }
-      throw new InvalidActionError(
-        accountDidNotExistError,
-        `Error getting account with address ${walletAddress}`,
-        err,
+      throw new Error(
+        `Failed to get account with address ${
+          walletAddress
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }
@@ -489,10 +506,12 @@ class ArkDEXAdapter {
       if (err instanceof InvalidActionError) {
         throw err;
       }
-      throw new InvalidActionError(
-        blockDidNotExistError,
-        `Error getting block with ID ${blockId}`,
-        err,
+      throw new Error(
+        `Failed to get block with ID ${
+          blockId
+        } because of error: ${
+          err.message
+        }`
       );
     }
   }

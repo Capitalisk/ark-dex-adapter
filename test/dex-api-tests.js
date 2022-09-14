@@ -100,7 +100,7 @@ describe('DEX API tests', async () => {
         try {
           await adapterModule.actions.getMultisigWalletMembers.handler({
             params: {
-              walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
+              walletAddress: 'DRzgcj97d3hFdLAAAAATdBQNVeb92mzrx5',
             },
           });
         } catch (error) {
@@ -130,7 +130,7 @@ describe('DEX API tests', async () => {
         try {
           await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
             params: {
-              walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
+              walletAddress: 'DRzgcj97d3hFdLAAAAATdBQNVeb92mzrx5',
             },
           });
         } catch (error) {
@@ -507,7 +507,7 @@ describe('DEX API tests', async () => {
         let preparedTxn = transferBuilder
           .version(2)
           .nonce(nonce)
-          .amount(50000000)
+          .amount(40000000)
           .fee(5000000)
           .senderPublicKey('0398db7e710602fffe50f137d536735c7fc1bcfa79cefd659cb7b8d118bf5bbbf0')
           .recipientId('DTY1sPZrWDynB5zDYrhuv1oZ5SHNfc7Bnm')

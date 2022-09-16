@@ -3,7 +3,7 @@ const assert = require('assert');
 const ArkDEXAdapter = require('../index');
 const Channel = require('./utils/channel');
 const AppModuleMock = require('./utils/app');
-const { Transactions, Identities, Managers, Utils, Crypto } = require('@arkecosystem/crypto');
+const { Transactions, Identities, Managers, Utils, Crypto } = require('capitalisk-ark-crypto');
 
 const wait = (duration) =>
   new Promise((resolve) => setTimeout(resolve, duration));

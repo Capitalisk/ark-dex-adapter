@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { Identities } = require('@arkecosystem/crypto');
+const { Identities } = require('capitalisk-ark-crypto');
 
 const packageJSON = require('./package.json');
 const { default: axios } = require('axios');

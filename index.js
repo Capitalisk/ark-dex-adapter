@@ -516,10 +516,21 @@ class ArkDEXAdapter {
     }
   }
 
-  async getRequiredDexWalletInformation() {
-    const account = (
-      await axios.get(`${this.apiURL}/wallets/${this.dexWalletAddress}`)
-    ).data.data;
+  async getRequiredDEXWalletInformation() {
+    let account;
+    try {
+      account = (
+        await axios.get(`${this.apiURL}/wallets/${this.dexWalletAddress}`)
+      ).data.data;
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch info for the DEX wallet ${
+          this.dexWalletAddress
+        } because of error: ${
+          error.message
+        }`
+      );
+    }
 
     if (!account) {
       throw new Error(`Account ${this.dexWalletAddress} could not be found`);
@@ -535,10 +546,10 @@ class ArkDEXAdapter {
 
   async load(channel) {
     if (!this.dexWalletAddress) {
-      throw new Error('Dex wallet address not provided in the config');
+      throw new Error('DEX wallet address was not provided in the config');
     }
 
-    await this.getRequiredDexWalletInformation();
+    await this.getRequiredDEXWalletInformation();
 
     this.channel = channel;
 

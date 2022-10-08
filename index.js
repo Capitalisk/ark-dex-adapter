@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { Identities } = require('capitalisk-ark-crypto');
+const { Identities, Managers } = require('capitalisk-ark-crypto');
 
 const packageJSON = require('./package.json');
 const { default: axios } = require('axios');
@@ -50,6 +50,11 @@ class ArkDEXAdapter {
     this.dexWalletAddress = options.config.dexWalletAddress;
     this.chainSymbol = options.config.chainSymbol || DEFAULT_CHAIN_SYMBOL;
     this.apiURL = options.config.apiURL || DEFAULT_API_URL;
+    this.env = options.config.env || 'devnet';
+
+    Managers.configManager.setFromPreset(this.env);
+    // Needs to be set to a height which supports version 2 transactions.
+    Managers.configManager.setHeight(20000000);
 
     this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
 

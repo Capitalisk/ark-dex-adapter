@@ -19,7 +19,7 @@ describe('DEX API tests', async () => {
   before(async () => {
     adapterModule = new ArkDEXAdapter({
       config: {
-        env: 'test',
+        env: 'devnet',
         dexWalletAddress: 'DMwCauULKf1edh4WVTYVEfZt9CouMqxDuV',
         apiURL: 'https://dapi.ark.io/api',
       },

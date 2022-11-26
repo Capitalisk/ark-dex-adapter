@@ -127,9 +127,6 @@ class ArkDEXAdapter {
       getOutboundTransactions: {
         handler: (action) => this.getOutboundTransactions(action),
       },
-      getInboundTransactions: {
-        handler: (action) => this.getInboundTransactions(action),
-      },
       getInboundTransactionsFromBlock: {
         handler: (action) => this.getInboundTransactionsFromBlock(action),
       },
@@ -250,7 +247,7 @@ class ArkDEXAdapter {
           offset,
           senderId: walletAddress,
           limit,
-          orderBy: `timestamp:${order || 'asc'}`,
+          orderBy: `nonce:${order || 'asc'}`,
         };
 
         if (order === 'desc') {

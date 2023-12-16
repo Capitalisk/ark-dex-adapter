@@ -316,7 +316,7 @@ describe('DEX API tests', async () => {
     });
 
     describe('getOutboundTransactionsFromBlock action', async () => {
-      it('should return an array of transactions sent to the specified walletAddress in asc order', async () => {
+      it('should return an array of transactions sent from the specified walletAddress in asc order', async () => {
         const senderAddress = 'DRFp1KVCuCMFLPFrHzbH8eYdPUoNwTXWzV';
         let transactions =
           await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
